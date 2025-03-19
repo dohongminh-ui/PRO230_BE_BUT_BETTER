@@ -1,0 +1,10 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "activation-1.1.jar",
+        "javax.mail.jar",
+        "miglayout-4.0.jar",
+        "TimingFramework-0.55.jar",
+        "e:\\mssql-jdbc-7.2.2.jre8.jar"
+    ]
+}

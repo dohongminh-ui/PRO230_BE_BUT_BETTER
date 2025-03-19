@@ -23,6 +23,7 @@ public class Customer {
     private String userName;
     private LocalDateTime logOut;
     private int accountFailCount;
+    private boolean isAdmin;
     
     
     // Default constructor
@@ -39,7 +40,13 @@ public class Customer {
         this.userName = userName;
     }
     
-    
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
     
     // Parameterized constructor
     public Customer(int idCustomer, String name, String sex, LocalDateTime createDate, String email, 

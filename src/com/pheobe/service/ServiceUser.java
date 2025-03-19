@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.*;
+import java.time.LocalDateTime;
 
 public class ServiceUser {
 
@@ -16,10 +17,9 @@ public class ServiceUser {
         con = DBcontext.getConnection();
     }
 
-    // public ModelUser login(ModelLogin login) throws SQLException {
     public Customer login(Customer login) throws SQLException {
         Customer data = null;
-        PreparedStatement p = con.prepareStatement("SELECT IdCustomer, UserName, Email FROM CUSTOMER WHERE Email=? AND Password=?");
+        PreparedStatement p = con.prepareStatement("SELECT IdCustomer, UserName, Email, isAdmin FROM CUSTOMER WHERE Email=? AND Password=?");
         p.setString(1, login.getEmail());
         p.setString(2, login.getPassword());
         ResultSet r = p.executeQuery();
@@ -27,14 +27,23 @@ public class ServiceUser {
             int userID = r.getInt(1);
             String userName = r.getString(2);
             String email = r.getString(3);
+            boolean isAdmin = r.getBoolean(4);
             data = new Customer(userID, email, "", userName);
+            data.setAdmin(isAdmin);
+            updateLastLogin(userID);
         }
         r.close();
         p.close();
         return data;
     }
 
-    ;
+    private void updateLastLogin(int userId) throws SQLException {
+        PreparedStatement p = con.prepareStatement("UPDATE CUSTOMER SET logOut = ?, accountFailCount = 0 WHERE IdCustomer = ?");
+        p.setObject(1, LocalDateTime.now());
+        p.setInt(2, userId);
+        p.executeUpdate();
+        p.close();
+    }
 
     public void insertUser(Customer user) throws SQLException {
         PreparedStatement p = con.prepareStatement("INSERT into CUSTOMER(UserName, Email, [Password],Name)\n"
@@ -77,5 +86,15 @@ public class ServiceUser {
         r.close();
         p.close();
         return duplicate;
+    }
+
+    // admin
+
+    public void makeAdmin(int userId, boolean isAdmin) throws SQLException {
+        PreparedStatement p = con.prepareStatement("UPDATE CUSTOMER SET isAdmin=? WHERE IdCustomer=?");
+        p.setBoolean(1, isAdmin);
+        p.setInt(2, userId);
+        p.execute();
+        p.close();
     }
 }

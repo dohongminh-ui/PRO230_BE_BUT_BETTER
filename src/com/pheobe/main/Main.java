@@ -140,7 +140,11 @@ public class Main extends javax.swing.JFrame {
             Customer user = service.login(data);
             if (user != null) {
                 this.dispose();
-                MainSystem.main(user);
+                if (user.isAdmin()) {
+                    AdminSystem.main(user);
+                } else {
+                    MainSystem.main(user);
+                }
             } else {
                 showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
             }
@@ -156,7 +160,7 @@ public class Main extends javax.swing.JFrame {
             @Override
             public void begin() {
                 if (!ms.isShow()) {
-                    bg.add(ms, "pos 0.5al -30", 0); //  Insert to bg fist index 0
+                    bg.add(ms, "pos 0.5al -30", 0);
                     ms.setVisible(true);
                     bg.repaint();
                 }

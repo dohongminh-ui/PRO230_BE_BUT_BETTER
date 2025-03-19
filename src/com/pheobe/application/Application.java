@@ -29,13 +29,10 @@ import net.miginfocom.swing.MigLayout;
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.TimingTarget;
 import org.jdesktop.animation.timing.TimingTargetAdapter;
-import com.pheobe.main.AdminSystem;
-import com.pheobe.main.MainSystem;
-import com.pheobe.application.form.other.FormDashboard;
 
 /**
  *
- * @author Raven
+ * @author pheoebeo
  */
 public class Application extends javax.swing.JFrame {
 
@@ -74,9 +71,8 @@ public class Application extends javax.swing.JFrame {
         layout = new MigLayout("fill, insets 0");
         cover = new PanelCover();
         loading = new PanelLoading();
-        bg = new JLayeredPane(); // Initialize bg here
+        bg = new JLayeredPane();
         
-        // Set up the action listeners
         ActionListener eventRegister = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -184,7 +180,7 @@ public class Application extends javax.swing.JFrame {
                 
                 login();
                 
-                showForm(new FormDashboard());
+                showForm(new MainForm());
                 
                 setSelectedMenu(0, 0);
             } else {
@@ -302,17 +298,15 @@ public class Application extends javax.swing.JFrame {
 
     public static void main(String args[]) {
         try {
-            // Initialize database connection
             DBcontext.getConnection();
         } catch (Exception e) {
             e.printStackTrace();
         }
         
         FlatRobotoFont.install();
-        FlatLaf.registerCustomDefaultsSource("raven.theme");
+        FlatLaf.registerCustomDefaultsSource("com/pheobe/application/theme");
         UIManager.put("defaultFont", new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
         
-        // Change from FlatMacDarkLaf to FlatMacLightLaf
         FlatMacLightLaf.setup();
         
         java.awt.EventQueue.invokeLater(() -> {

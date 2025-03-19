@@ -75,11 +75,10 @@ public class MenuItem extends JPanel {
     }
 
     private Icon getIcon() {
-        Color lightColor = FlatUIUtils.getUIColor("Menu.icon.lightColor", Color.red);
-        Color darkColor = FlatUIUtils.getUIColor("Menu.icon.darkColor", Color.red);
-        FlatSVGIcon icon = new FlatSVGIcon("com/pheobe/menu/icon/" + menuIndex + ".svg");
+        Color iconColor = FlatUIUtils.getUIColor("Menu.icon.lightColor", Color.white);
+        FlatSVGIcon icon = new FlatSVGIcon("com/pheobe/application/menu/icon/" + menuIndex + ".svg");
         FlatSVGIcon.ColorFilter f = new FlatSVGIcon.ColorFilter();
-        f.add(Color.decode("#969696"), lightColor, darkColor);
+        f.add(Color.decode("#ffb348"), iconColor);
         icon.setColorFilter(f);
         return icon;
     }

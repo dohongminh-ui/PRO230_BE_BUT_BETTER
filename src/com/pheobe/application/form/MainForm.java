@@ -24,7 +24,7 @@ import com.pheobe.application.menu.MenuAction;
 
 /**
  *
- * @author Raven
+ * @author pheoebe
  */
 public class MainForm extends JLayeredPane {
 
@@ -64,7 +64,7 @@ public class MainForm extends JLayeredPane {
             menuButton = new JButton();
         }
         String icon = (getComponentOrientation().isLeftToRight()) ? "menu_left.svg" : "menu_right.svg";
-        menuButton.setIcon(new FlatSVGIcon("raven/icon/svg/" + icon, 0.8f));
+        menuButton.setIcon(new FlatSVGIcon("com/pheobe/icon/svg/" + icon, 0.8f));
     }
 
     private void initMenuEvent() {

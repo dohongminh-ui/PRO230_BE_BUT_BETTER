@@ -3,14 +3,18 @@ package com.pheobe.application.menu;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
-import com.pheobe.application.menu.mode.LightDarkMode;
 import com.pheobe.application.menu.mode.ToolBarAccentColor;
 
+import java.awt.AlphaComposite;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
@@ -21,24 +25,20 @@ import javax.swing.JScrollPane;
 
 /**
  *
- * @author Raven
+ * @author pheoebe
  */
 public class Menu extends JPanel {
 
     private final String menuItems[][] = {
-        {"~MAIN~"},
-        {"Dashboard"},
-        {"~WEB APP~"},
-        {"Email", "Inbox", "Read", "Compost"},
-        {"Chat"},
-        {"Calendar"},
+        {"~PRODUCTS~"},
+        {"Products", "VGA", "CPU", "Mainboard"},
         {"~COMPONENT~"},
-        {"Advanced UI", "Cropper", "Owl Carousel", "Sweet Alert"},
-        {"Forms", "Basic Elements", "Advanced Elements", "Editors", "Wizard"},
+        {"Cart"},
+        {"Checkout", "Track Order"},
+        {"~HISTORY~"},
+        {"Shopping History"},
         {"~OTHER~"},
-        {"Charts", "Apex", "Flot", "Peity", "Sparkline"},
-        {"Icons", "Feather Icons", "Flag Icons", "Mdi Icons"},
-        {"Special Pages", "Blank page", "Faq", "Invoice", "Profile", "Pricing", "Timeline"},
+        {"Personal Information"},
         {"Logout"}
     };
 
@@ -60,13 +60,12 @@ public class Menu extends JPanel {
                 ((MenuItem) com).setFull(menuFull);
             }
         }
-        lightDarkMode.setMenuFull(menuFull);
         toolBarAccentColor.setMenuFull(menuFull);
     }
 
     private final List<MenuEvent> events = new ArrayList<>();
     private boolean menuFull = true;
-    private final String headerName = "Raven Channel";
+    private final String headerName = "Beelectronic";
 
     protected final boolean hideMenuTitleOnMinimum = true;
     protected final int menuTitleLeftInset = 5;
@@ -86,7 +85,18 @@ public class Menu extends JPanel {
                 + "background:$Menu.background;"
                 + "arc:10");
         header = new JLabel(headerName);
-        header.setIcon(new ImageIcon(getClass().getResource("/com/pheobe/application/menu/icon/png/logo.png")));
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/logo.jpg"));
+        int size = UIScale.scale(32);
+        
+        BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = circleBuffer.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.fill(new Ellipse2D.Double(0, 0, size, size));
+        g2.setComposite(AlphaComposite.SrcIn);
+        g2.drawImage(originalIcon.getImage(), 0, 0, size, size, null);
+        g2.dispose();
+        
+        header.setIcon(new ImageIcon(circleBuffer));
         header.putClientProperty(FlatClientProperties.STYLE, ""
                 + "font:$Menu.header.font;"
                 + "foreground:$Menu.foreground");
@@ -110,12 +120,10 @@ public class Menu extends JPanel {
                 + "background:$Menu.ScrollBar.background;"
                 + "thumb:$Menu.ScrollBar.thumb");
         createMenu();
-        lightDarkMode = new LightDarkMode();
         toolBarAccentColor = new ToolBarAccentColor(this);
         toolBarAccentColor.setVisible(FlatUIUtils.getUIBoolean("AccentControl.show", false));
         add(header);
         add(scroll);
-        add(lightDarkMode);
         add(toolBarAccentColor);
     }
 
@@ -206,7 +214,6 @@ public class Menu extends JPanel {
     private JLabel header;
     private JScrollPane scroll;
     private JPanel panelMenu;
-    private LightDarkMode lightDarkMode;
     private ToolBarAccentColor toolBarAccentColor;
 
     private class MenuLayout implements LayoutManager {
@@ -252,25 +259,19 @@ public class Menu extends JPanel {
                 }
 
                 header.setBounds(x + hgap, y, iconWidth - (hgap * 2), iconHeight);
+                
                 int ldgap = UIScale.scale(10);
-                int ldWidth = width - ldgap * 2;
-                int ldHeight = lightDarkMode.getPreferredSize().height;
-                int ldx = x + ldgap;
-                int ldy = y + height - ldHeight - ldgap  - accentColorHeight;
-
                 int menux = x;
                 int menuy = y + iconHeight + gap;
                 int menuWidth = width;
-                int menuHeight = height - (iconHeight + gap) - (ldHeight + ldgap * 2) - (accentColorHeight);
+                int menuHeight = height - (iconHeight + gap) - accentColorHeight;
                 scroll.setBounds(menux, menuy, menuWidth, menuHeight);
-
-                lightDarkMode.setBounds(ldx, ldy, ldWidth, ldHeight);
 
                 if (toolBarAccentColor.isVisible()) {
                     int tbheight = toolBarAccentColor.getPreferredSize().height;
-                    int tbwidth = Math.min(toolBarAccentColor.getPreferredSize().width, ldWidth);
+                    int tbwidth = Math.min(toolBarAccentColor.getPreferredSize().width, width - ldgap * 2);
                     int tby = y + height - tbheight - ldgap;
-                    int tbx = ldx + ((ldWidth - tbwidth) / 2);
+                    int tbx = x + ldgap + (((width - ldgap * 2) - tbwidth) / 2);
                     toolBarAccentColor.setBounds(tbx, tby, tbwidth, tbheight);
                 }
             }

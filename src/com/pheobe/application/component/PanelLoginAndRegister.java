@@ -1,4 +1,4 @@
-package com.pheobe.component;
+package com.pheobe.application.component;
 
 import com.pheobe.model.Customer;
 import com.pheobe.swing.Button;

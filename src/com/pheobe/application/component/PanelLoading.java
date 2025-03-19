@@ -1,4 +1,4 @@
-package com.pheobe.component;
+package com.pheobe.application.component;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;

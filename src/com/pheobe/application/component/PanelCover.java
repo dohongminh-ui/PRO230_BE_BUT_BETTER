@@ -1,4 +1,4 @@
-package com.pheobe.component;
+package com.pheobe.application.component;
 
 import com.pheobe.swing.ButtonOutLine;
 import java.awt.Color;

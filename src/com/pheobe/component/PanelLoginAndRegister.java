@@ -1,7 +1,6 @@
 package com.pheobe.component;
 
-import com.pheobe.model.ModelLogin;
-import com.pheobe.model.ModelUser;
+import com.pheobe.model.Customer;
 import com.pheobe.swing.Button;
 import com.pheobe.swing.MyPasswordField;
 import com.pheobe.swing.MyTextField;
@@ -17,16 +16,16 @@ import net.miginfocom.swing.MigLayout;
 
 public class PanelLoginAndRegister extends javax.swing.JLayeredPane {
 
-    public ModelLogin getDataLogin() {
+    public Customer getDataLogin() {
         return dataLogin;
     }
 
-    public ModelUser getUser() {
+    public Customer getUser() {
         return user;
     }
 
-    private ModelUser user;
-    private ModelLogin dataLogin;
+    private Customer user;
+    private Customer dataLogin;
 
     public PanelLoginAndRegister(ActionListener eventRegister, ActionListener eventLogin) {
         initComponents();
@@ -66,7 +65,11 @@ public class PanelLoginAndRegister extends javax.swing.JLayeredPane {
                 String userName = txtUser.getText().trim();
                 String email = txtEmail.getText().trim();
                 String password = String.valueOf(txtPass.getPassword());
-                user = new ModelUser(0, userName, email, password);
+                user = new Customer();
+                user.setIdCustomer(0);
+                user.setUserName(userName);
+                user.setEmail(email);
+                user.setPassword(password);
             }
         });
     }
@@ -102,7 +105,9 @@ public class PanelLoginAndRegister extends javax.swing.JLayeredPane {
             public void actionPerformed(ActionEvent ae) {
                 String email = txtEmail.getText().trim();
                 String password = String.valueOf(txtPass.getPassword());
-                dataLogin = new ModelLogin(email, password);
+                dataLogin = new Customer();
+                dataLogin.setEmail(email);
+                dataLogin.setPassword(password);
             }
         });
     }

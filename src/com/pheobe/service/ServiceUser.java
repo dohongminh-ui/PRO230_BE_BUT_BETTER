@@ -2,8 +2,6 @@ package com.pheobe.service;
 
 import com.pheobe.connection.DBcontext;
 import com.pheobe.model.Customer;
-import com.pheobe.model.ModelLogin;
-import com.pheobe.model.ModelUser;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

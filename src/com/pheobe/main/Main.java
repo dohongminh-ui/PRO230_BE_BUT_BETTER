@@ -6,8 +6,6 @@ import com.pheobe.component.PanelLoading;
 import com.pheobe.component.PanelLoginAndRegister;
 import com.pheobe.connection.DBcontext;
 import com.pheobe.model.Customer;
-import com.pheobe.model.ModelLogin;
-import com.pheobe.model.ModelUser;
 import com.pheobe.service.ServiceUser;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -137,7 +135,7 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void login() {
-        ModelLogin data = loginAndRegister.getDataLogin();
+        Customer data = loginAndRegister.getDataLogin();
         try {
             Customer user = service.login(data);
             if (user != null) {
@@ -146,7 +144,6 @@ public class Main extends javax.swing.JFrame {
             } else {
                 showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
             }
-
         } catch (SQLException e) {
             showMessage(Message.MessageType.ERROR, "Error Login");
         }

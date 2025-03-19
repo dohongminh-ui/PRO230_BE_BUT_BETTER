@@ -95,7 +95,7 @@ public class MainForm extends JLayeredPane {
         } else {
             icon = (full) ? "menu_right.svg" : "menu_left.svg";
         }
-        menuButton.setIcon(new FlatSVGIcon("raven/icon/svg/" + icon, 0.8f));
+        menuButton.setIcon(new FlatSVGIcon("com/pheobe/icon/svg/" + icon, 0.8f));
         menu.setMenuFull(full);
         revalidate();
     }

@@ -10,7 +10,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
 import com.pheobe.application.component.Message;
 import com.pheobe.application.component.PanelCover;
 import com.pheobe.application.component.PanelLoading;
@@ -32,8 +31,7 @@ import org.jdesktop.animation.timing.TimingTarget;
 import org.jdesktop.animation.timing.TimingTargetAdapter;
 import com.pheobe.main.AdminSystem;
 import com.pheobe.main.MainSystem;
-// import com.pheobe.themes.FlatMacLightLaf;
-// import com.pheobe.toast.Notifications;
+import com.pheobe.application.form.other.FormDashboard;
 
 /**
  *
@@ -44,7 +42,6 @@ public class Application extends javax.swing.JFrame {
     private static Application app;
     private final MainForm mainForm;
     
-    // Components from Main.java
     private final DecimalFormat df = new DecimalFormat("##0.###", DecimalFormatSymbols.getInstance(Locale.US));
     private MigLayout layout;
     private PanelCover cover;
@@ -57,16 +54,16 @@ public class Application extends javax.swing.JFrame {
     private ServiceUser service;
     private JLayeredPane bg;
 
+    private static Customer currentUser;
+
     public Application() {
         initComponents();
         setSize(new Dimension(1366, 768));
         setLocationRelativeTo(null);
         mainForm = new MainForm();
         
-        // Instead, set up the component-based UI:
         initAuthComponents();
         
-        // Set the bg as the content pane instead of loginForm
         setContentPane(bg);
         
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
@@ -96,7 +93,6 @@ public class Application extends javax.swing.JFrame {
         
         loginAndRegister = new PanelLoginAndRegister(eventRegister, eventLogin);
         
-        // Configure layout
         bg.setLayout(layout);
         bg.setLayer(loading, JLayeredPane.POPUP_LAYER);
         bg.add(loading, "pos 0 0 100% 100%");
@@ -184,13 +180,13 @@ public class Application extends javax.swing.JFrame {
         try {
             Customer user = service.login(data);
             if (user != null) {
-                if (user.isAdmin()) {
-                    AdminSystem.main(user);
-                } else {
-                    MainSystem.main(user);
-                }
-                // After authentication, switch to internal system
+                currentUser = user;
+                
                 login();
+                
+                showForm(new FormDashboard());
+                
+                setSelectedMenu(0, 0);
             } else {
                 showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
             }
@@ -263,6 +259,10 @@ public class Application extends javax.swing.JFrame {
         FlatAnimatedLafChange.showSnapshot();
         app.setContentPane(app.mainForm);
         app.mainForm.applyComponentOrientation(app.getComponentOrientation());
+        
+        // Update title or user display if needed
+        // If you want to display the username in the UI, you can do it here
+        
         setSelectedMenu(0, 0);
         app.mainForm.hideMenu();
         SwingUtilities.updateComponentTreeUI(app.mainForm);
@@ -324,4 +324,9 @@ public class Application extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+
+    // Getter for the current user
+    public static Customer getCurrentUser() {
+        return currentUser;
+    }
 }

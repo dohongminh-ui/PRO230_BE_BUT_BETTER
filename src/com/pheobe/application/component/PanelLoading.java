@@ -25,7 +25,7 @@ public class PanelLoading extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/pheobe/icon/loading.gif"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/pheobe/application/menu/icon//loading.gif"))); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

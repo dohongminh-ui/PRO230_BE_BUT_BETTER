@@ -140,7 +140,7 @@ public class Application extends javax.swing.JFrame {
         Animator animator = new Animator(800, target);
         animator.setAcceleration(0.5f);
         animator.setDeceleration(0.5f);
-        animator.setResolution(0);  // for smooth animation
+        animator.setResolution(0);
         
         cover.addEvent(new ActionListener() {
             @Override
@@ -186,7 +186,7 @@ public class Application extends javax.swing.JFrame {
             showMessage(Notifications.Type.SUCCESS, "Logged in as mmb");
             
         } catch (Exception e) {
-            showMessage(Notifications.Type.ERROR, "Error during login bypass: " + e.getMessage());
+            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -208,12 +208,9 @@ public class Application extends javax.swing.JFrame {
     }
 
     private void showMessage(Notifications.Type type, String message) {
-        // For debugging
         System.out.println("Showing notification: " + message + " (Type: " + type + ")");
         
-        // Make sure we're on the EDT when showing notifications
         SwingUtilities.invokeLater(() -> {
-            // Show notification using the Toast library
             Notifications.getInstance().show(type, Notifications.Location.TOP_CENTER, message);
         });
     }

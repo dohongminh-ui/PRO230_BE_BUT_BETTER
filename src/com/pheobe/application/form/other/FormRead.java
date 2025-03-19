@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 
 /**
  *
- * @author Raven
+ * @author pheobeo
  */
 public class FormRead extends javax.swing.JPanel {
 

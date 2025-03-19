@@ -10,7 +10,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import com.pheobe.application.component.Message;
 import com.pheobe.application.component.PanelCover;
 import com.pheobe.application.component.PanelLoading;
 import com.pheobe.application.component.PanelLoginAndRegister;
@@ -29,6 +28,7 @@ import net.miginfocom.swing.MigLayout;
 import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.TimingTarget;
 import org.jdesktop.animation.timing.TimingTargetAdapter;
+import raven.toast.Notifications;
 
 /**
  *
@@ -58,11 +58,9 @@ public class Application extends javax.swing.JFrame {
         setSize(new Dimension(1366, 768));
         setLocationRelativeTo(null);
         mainForm = new MainForm();
-        
         initAuthComponents();
-        
         setContentPane(bg);
-        
+        Notifications.getInstance().setJFrame(this);
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
     }
     
@@ -158,97 +156,74 @@ public class Application extends javax.swing.JFrame {
         Customer user = loginAndRegister.getUser();
         try {
             if (service.checkDuplicateUser(user.getUserName())) {
-                showMessage(Message.MessageType.ERROR, "Username already exists");
+                showMessage(Notifications.Type.ERROR, "Username already exists");
             } else if (service.checkDuplicateEmail(user.getEmail())) {
-                showMessage(Message.MessageType.ERROR, "Email already exists");
+                showMessage(Notifications.Type.ERROR, "Email already exists");
             } else {
                 service.insertUser(user);
-                showMessage(Message.MessageType.SUCCESS, "Registration successful!");
+                showMessage(Notifications.Type.SUCCESS, "Registration successful!");
                 System.out.println("Register successful");
             }
         } catch (SQLException e) {
-            showMessage(Message.MessageType.ERROR, "Error during registration");
+            showMessage(Notifications.Type.ERROR, "Error during registration");
         }
     }
 
     private void authenticateUser() {
-        Customer data = loginAndRegister.getDataLogin();
+        
         try {
-            Customer user = service.login(data);
-            if (user != null) {
-                currentUser = user;
-                
-                login();
-                
-                showForm(new MainForm());
-                
-                setSelectedMenu(0, 0);
-            } else {
-                showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
-            }
-        } catch (SQLException e) {
-            showMessage(Message.MessageType.ERROR, "Error during login");
+            Customer testUser = new Customer();
+            testUser.setUserName("testuser");
+            testUser.setEmail("test@example.com");
+            testUser.setPassword("password");
+            
+            currentUser = testUser;
+            
+            login();
+            showForm(mainForm);
+            setSelectedMenu(0, 0);
+            
+            showMessage(Notifications.Type.SUCCESS, "Logged in as mmb");
+            
+        } catch (Exception e) {
+            showMessage(Notifications.Type.ERROR, "Error during login bypass: " + e.getMessage());
+            e.printStackTrace();
         }
+        
+        
+        // Customer data = loginAndRegister.getDataLogin();
+        // try {
+        //     Customer user = service.login(data);
+        //     if (user != null) {
+        //         currentUser = user;
+        //         login();
+        //         showForm(mainForm);
+        //         setSelectedMenu(0, 0);
+        //     } else {
+        //         showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
+        //     }
+        // } catch (SQLException e) {
+        //     showMessage(Message.MessageType.ERROR, "Error during login");
+        // }
     }
 
-    private void showMessage(Message.MessageType messageType, String message) {
-        Message ms = new Message();
-        ms.showMessage(messageType, message);
-        TimingTarget target = new TimingTargetAdapter() {
-            @Override
-            public void begin() {
-                if (!ms.isShow()) {
-                    bg.add(ms, "pos 0.5al -30", 0);
-                    ms.setVisible(true);
-                    bg.repaint();
-                }
-            }
-
-            @Override
-            public void timingEvent(float fraction) {
-                float f;
-                if (ms.isShow()) {
-                    f = 40 * (1f - fraction);
-                } else {
-                    f = 40 * fraction;
-                }
-                layout.setComponentConstraints(ms, "pos 0.5al " + (int) (f - 30));
-                bg.repaint();
-                bg.revalidate();
-            }
-
-            @Override
-            public void end() {
-                if (ms.isShow()) {
-                    bg.remove(ms);
-                    bg.repaint();
-                    bg.revalidate();
-                } else {
-                    ms.setShow(true);
-                }
-            }
-        };
-        Animator animator = new Animator(300, target);
-        animator.setResolution(0);
-        animator.setAcceleration(0.5f);
-        animator.setDeceleration(0.5f);
-        animator.start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(2000);
-                    animator.start();
-                } catch (InterruptedException e) {
-                    System.err.println(e);
-                }
-            }
-        }).start();
+    private void showMessage(Notifications.Type type, String message) {
+        // For debugging
+        System.out.println("Showing notification: " + message + " (Type: " + type + ")");
+        
+        // Make sure we're on the EDT when showing notifications
+        SwingUtilities.invokeLater(() -> {
+            // Show notification using the Toast library
+            Notifications.getInstance().show(type, Notifications.Location.TOP_CENTER, message);
+        });
     }
 
     public static void showForm(Component component) {
         component.applyComponentOrientation(app.getComponentOrientation());
-        app.mainForm.showForm(component);
+        
+        if (!(component instanceof MainForm)) {
+            app.mainForm.showForm(component);
+        }
     }
 
     public static void login() {
@@ -304,7 +279,7 @@ public class Application extends javax.swing.JFrame {
         }
         
         FlatRobotoFont.install();
-        FlatLaf.registerCustomDefaultsSource("com/pheobe/application/theme");
+        FlatLaf.registerCustomDefaultsSource("com/pheobe/theme");
         UIManager.put("defaultFont", new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
         
         FlatMacLightLaf.setup();

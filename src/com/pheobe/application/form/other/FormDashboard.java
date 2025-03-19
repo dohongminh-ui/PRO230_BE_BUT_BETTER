@@ -23,22 +23,17 @@ public class FormDashboard extends javax.swing.JPanel {
     private void initSearchComponent() {
         searchComponent = new SearchComponent();
         
-        // Add search functionality
         searchComponent.addSearchListener(e -> {
             String searchText = searchComponent.getSearchText();
             performSearch(searchText);
         });
         
-        // Optional: Add real-time search functionality
         searchComponent.addSearchTextChangeListener(text -> {
-            // Update results as user types
             updateSearchResults(text);
         });
         
-        // Add to existing layout
         javax.swing.GroupLayout layout = (javax.swing.GroupLayout) getLayout();
         
-        // Update horizontal group
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -52,7 +47,6 @@ public class FormDashboard extends javax.swing.JPanel {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         
-        // Update vertical group
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()

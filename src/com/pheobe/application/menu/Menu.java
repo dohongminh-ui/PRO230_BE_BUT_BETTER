@@ -35,7 +35,6 @@ public class Menu extends JPanel {
         {"~COMPONENT~"},
         {"Cart"},
         {"Checkout", "Track Order"},
-        {"~HISTORY~"},
         {"Shopping History"},
         {"~OTHER~"},
         {"Personal Information"},
@@ -85,7 +84,7 @@ public class Menu extends JPanel {
                 + "background:$Menu.background;"
                 + "arc:10");
         header = new JLabel(headerName);
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/logo.jpg"));
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/logo.png"));
         int size = UIScale.scale(32);
         
         BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
@@ -101,7 +100,6 @@ public class Menu extends JPanel {
                 + "font:$Menu.header.font;"
                 + "foreground:$Menu.foreground");
 
-        //  Menu
         scroll = new JScrollPane();
         panelMenu = new JPanel(new MenuItemLayout(this));
         panelMenu.putClientProperty(FlatClientProperties.STYLE, ""
@@ -145,7 +143,7 @@ public class Menu extends JPanel {
         JLabel lbTitle = new JLabel(menuName);
         lbTitle.putClientProperty(FlatClientProperties.STYLE, ""
                 + "font:$Menu.label.font;"
-                + "foreground:$Menu.title.foreground");
+                + "foreground:@background");
         return lbTitle;
     }
 

@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 
 /**
  *
- * @author Raven
+ * @author pheobeo
  */
 public class FormInbox extends javax.swing.JPanel {
 

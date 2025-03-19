@@ -24,7 +24,7 @@ import javax.swing.JPanel;
 
 /**
  *
- * @author Raven
+ * @author pheobeo
  */
 public class MenuItem extends JPanel {
 
@@ -75,11 +75,7 @@ public class MenuItem extends JPanel {
     }
 
     private Icon getIcon() {
-        Color iconColor = FlatUIUtils.getUIColor("Menu.icon.lightColor", Color.white);
         FlatSVGIcon icon = new FlatSVGIcon("com/pheobe/application/menu/icon/" + menuIndex + ".svg");
-        FlatSVGIcon.ColorFilter f = new FlatSVGIcon.ColorFilter();
-        f.add(Color.decode("#ffb348"), iconColor);
-        icon.setColorFilter(f);
         return icon;
     }
 

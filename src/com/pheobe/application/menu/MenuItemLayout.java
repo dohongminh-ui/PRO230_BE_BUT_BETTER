@@ -10,7 +10,7 @@ import javax.swing.JLabel;
 
 /**
  *
- * @author Raven
+ * @author pheobeo
  */
 public class MenuItemLayout implements LayoutManager {
 

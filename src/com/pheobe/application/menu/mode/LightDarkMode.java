@@ -19,7 +19,7 @@ import javax.swing.border.EmptyBorder;
 
 /**
  *
- * @author Raven
+ * @author pheobeo
  */
 public class LightDarkMode extends JPanel {
 

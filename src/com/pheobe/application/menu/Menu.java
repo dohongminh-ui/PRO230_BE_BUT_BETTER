@@ -22,6 +22,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.border.EmptyBorder;
+import java.awt.BorderLayout;
+import java.awt.Image;
 
 /**
  *
@@ -31,10 +35,9 @@ public class Menu extends JPanel {
 
     private final String menuItems[][] = {
         {"~PRODUCTS~"},
-        {"Products", "VGA", "CPU", "Mainboard"},
-        {"~COMPONENT~"},
+        {"Products", "All", "VGA", "CPU", "Mainboard"},
         {"Cart"},
-        {"Checkout", "Track Order"},
+        {"Track Order"},
         {"Shopping History"},
         {"~OTHER~"},
         {"Personal Information"},
@@ -72,6 +75,9 @@ public class Menu extends JPanel {
     protected final int menuMaxWidth = 250;
     protected final int menuMinWidth = 60;
     protected final int headerFullHgap = 5;
+
+    private JLabel gigi;
+    private final int gigiSize = 250;
 
     public Menu() {
         init();
@@ -117,6 +123,13 @@ public class Menu extends JPanel {
                 + "thumbInsets:$Menu.scroll.thumbInsets;"
                 + "background:$Menu.ScrollBar.background;"
                 + "thumb:$Menu.ScrollBar.thumb");
+
+        ImageIcon gigiMurin = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/gigi.png"));
+        Image fatGigiMurin = gigiMurin.getImage().getScaledInstance(gigiSize, gigiSize, Image.SCALE_SMOOTH);
+        gigi = new JLabel(new ImageIcon(fatGigiMurin));
+        gigi.setHorizontalAlignment(JLabel.RIGHT);
+        add(gigi);
+
         createMenu();
         toolBarAccentColor = new ToolBarAccentColor(this);
         toolBarAccentColor.setVisible(FlatUIUtils.getUIBoolean("AccentControl.show", false));
@@ -138,13 +151,22 @@ public class Menu extends JPanel {
         }
     }
 
-    private JLabel createTitle(String title) {
-        String menuName = title.substring(1, title.length() - 1);
-        JLabel lbTitle = new JLabel(menuName);
-        lbTitle.putClientProperty(FlatClientProperties.STYLE, ""
-                + "font:$Menu.label.font;"
-                + "foreground:@background");
-        return lbTitle;
+    private Component createTitle(String title) {
+        JSeparator separator = new JSeparator();
+        
+        separator.putClientProperty(FlatClientProperties.STYLE, ""
+                + "background:$Menu.foreground;"
+                + "height:1");
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.add(separator, BorderLayout.CENTER);
+        panel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        
+        separator.setForeground(getForeground());
+        separator.setOpaque(true);
+        
+        return panel;
     }
 
     public void setSelectedMenu(int index, int subIndex) {
@@ -262,16 +284,18 @@ public class Menu extends JPanel {
                 int menux = x;
                 int menuy = y + iconHeight + gap;
                 int menuWidth = width;
-                int menuHeight = height - (iconHeight + gap) - accentColorHeight;
+                int menuHeight = height - (iconHeight + gap) - accentColorHeight - gigiSize;
                 scroll.setBounds(menux, menuy, menuWidth, menuHeight);
 
                 if (toolBarAccentColor.isVisible()) {
                     int tbheight = toolBarAccentColor.getPreferredSize().height;
                     int tbwidth = Math.min(toolBarAccentColor.getPreferredSize().width, width - ldgap * 2);
-                    int tby = y + height - tbheight - ldgap;
+                    int tby = y + height - tbheight - ldgap - gigiSize;
                     int tbx = x + ldgap + (((width - ldgap * 2) - tbwidth) / 2);
                     toolBarAccentColor.setBounds(tbx, tby, tbwidth, tbheight);
                 }
+
+                gigi.setBounds(x, height - gigiSize + insets.top, width, gigiSize);
             }
         }
     }

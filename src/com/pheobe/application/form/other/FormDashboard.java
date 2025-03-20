@@ -2,7 +2,18 @@ package com.pheobe.application.form.other;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.pheobe.application.component.SearchComponent;
-// import com.pheobe.toast.Notifications;
+import com.pheobe.application.component.ProductCardComponent;
+import com.pheobe.application.component.WrapLayout;
+import com.pheobe.model.Product;
+import com.pheobe.model.Brand;
+import com.pheobe.model.Category;
+import com.pheobe.service.Product_DAO;
+import com.pheobe.service.Brand_DAO;
+import com.pheobe.service.Category_DAO;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  *
@@ -11,13 +22,23 @@ import com.pheobe.application.component.SearchComponent;
 public class FormDashboard extends javax.swing.JPanel {
 
     private SearchComponent searchComponent;
+    private JPanel productsPanel;
+    private JScrollPane scrollPane;
+    private Product_DAO product_DAO;
+    private Brand_DAO brand_DAO;
+    private Category_DAO category_DAO;
 
     public FormDashboard() {
         initComponents();
-        lb.putClientProperty(FlatClientProperties.STYLE, ""
-                + "font:$h1.font");
+        lb.putClientProperty(FlatClientProperties.STYLE, "" + "font:$h1.font");
         
+        product_DAO = new Product_DAO();
+        brand_DAO = new Brand_DAO();
+        category_DAO = new Category_DAO();
+
         initSearchComponent();
+        initProductPanel();
+        loadProducts();
     }
     
     private void initSearchComponent() {
@@ -31,6 +52,18 @@ public class FormDashboard extends javax.swing.JPanel {
         searchComponent.addSearchTextChangeListener(text -> {
             updateSearchResults(text);
         });
+    }
+
+    private void initProductPanel() {
+        productsPanel = new JPanel();
+        productsPanel.setLayout(new WrapLayout(FlowLayout.CENTER, 15, 15));
+
+        scrollPane = new JScrollPane(productsPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBorder(null);
+
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
         javax.swing.GroupLayout layout = (javax.swing.GroupLayout) getLayout();
         
@@ -40,11 +73,9 @@ public class FormDashboard extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lb, javax.swing.GroupLayout.DEFAULT_SIZE, 794, Short.MAX_VALUE)
-                    .addComponent(searchComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(searchComponent, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(scrollPane))
                 .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(325, 325, 325)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         
         layout.setVerticalGroup(
@@ -54,9 +85,55 @@ public class FormDashboard extends javax.swing.JPanel {
                 .addComponent(lb)
                 .addGap(18, 18, 18)
                 .addComponent(searchComponent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(130, 130, 130)
-                .addContainerGap(237, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(scrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                .addContainerGap())
         );
+    }
+
+    private void loadProducts() {
+        SwingWorker<List<Product>, Void> worker = new SwingWorker<List<Product>, Void>() {
+            @Override
+            protected List<Product> doInBackground() throws Exception {
+                return product_DAO.getAllProducts();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<Product> products = get();
+                    displayProducts(products);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private void displayProducts(List<Product> products) {
+        productsPanel.removeAll();
+
+        for (Product product : products) {
+            if ("Active".equals(product.getStatus())) {
+                Brand brand = brand_DAO.selectById(product.getBrandId());
+                Category category = category_DAO.selectById(product.getCategoryId());
+
+                if (brand != null && category != null) {
+                    ProductCardComponent productCard = new ProductCardComponent(product, brand, category);
+                    productCard.addAddToCartListener(e -> addToCart(product));
+                    productsPanel.add(productCard);
+                }
+            }
+        }
+
+        productsPanel.revalidate();
+        productsPanel.repaint();
+    }
+
+    private void addToCart(Product product) {
+        System.out.println("Adding product to cart: " + product.getName());
     }
     
     private void performSearch(String searchText) {
@@ -78,7 +155,7 @@ public class FormDashboard extends javax.swing.JPanel {
         lb = new javax.swing.JLabel();
 
         lb.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb.setText("Dashboard");
+        lb.setText("gimuinininininnnnnnn");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -88,17 +165,13 @@ public class FormDashboard extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(lb, javax.swing.GroupLayout.DEFAULT_SIZE, 794, Short.MAX_VALUE)
                 .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(325, 325, 325)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lb)
-                .addGap(173, 173, 173)
-                .addContainerGap(237, Short.MAX_VALUE))
+                .addContainerGap(433, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

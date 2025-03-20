@@ -16,6 +16,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import com.pheobe.application.Application;
+import com.pheobe.application.form.other.FormCart1;
+import com.pheobe.application.form.other.FormCustomerInfromation;
 import com.pheobe.application.form.other.FormDashboard;
 import com.pheobe.application.form.other.FormInbox;
 import com.pheobe.application.form.other.FormRead;
@@ -73,13 +75,13 @@ public class MainForm extends JLayeredPane {
             if (index == 0) {
                 Application.showForm(new FormDashboard());
             } else if (index == 1) {
-                if (subIndex == 1) {
-                    Application.showForm(new FormInbox());
-                } else if (subIndex == 2) {
-                    Application.showForm(new FormRead());
-                } else {
-                    action.cancel();
-                }
+                Application.showForm(new FormCart1());
+            } else if (index == 2) {
+                Application.showForm(new FormRead());
+            } else if (index == 3) {
+                Application.showForm(new FormInbox());
+            } else if (index == 4) {
+                Application.showForm(new FormCustomerInfromation());
             } else if (index == 9) {
                 Application.logout();
             } else {

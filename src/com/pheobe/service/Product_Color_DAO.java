@@ -25,7 +25,7 @@ public class Product_Color_DAO {
         try {
             PreparedStatement stm = con.prepareStatement(queryString);
             ResultSet rs = stm.executeQuery();
-            
+        
             while (rs.next()) {
                 Product_Color productColor = new Product_Color();
                 productColor.setProductColorId(rs.getInt("ProductColorId"));

@@ -4,9 +4,10 @@ import com.formdev.flatlaf.FlatClientProperties;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
 import java.awt.event.ActionListener;
-import net.miginfocom.swing.MigLayout;
+import java.awt.FlowLayout;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
 
 public class SearchComponent extends JPanel {
     
@@ -18,16 +19,30 @@ public class SearchComponent extends JPanel {
     }
     
     private void initComponents() {
-        setLayout(new MigLayout("fillx, insets 0", "[fill][]", "[]"));
+        setLayout(new BorderLayout());
+        
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
+        
+        centerPanel.add(Box.createHorizontalGlue());
+        
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         
         searchField = new JTextField();
         searchField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search...");
-        // searchField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new ImageIcon(getClass().getResource("/com/pheobe/icon/search.png")));
+        searchField.setPreferredSize(new Dimension(300, 30));
+        searchField.setMaximumSize(new Dimension(400, 30));
         
         searchButton = new JButton("Search");
         
-        add(searchField, "growx");
-        add(searchButton);
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        
+        centerPanel.add(searchPanel);
+        
+        centerPanel.add(Box.createHorizontalGlue());
+        
+        add(centerPanel, BorderLayout.CENTER);
     }
     
     public void addSearchListener(ActionListener listener) {
@@ -61,7 +76,6 @@ public class SearchComponent extends JPanel {
         searchField.setText(text);
     }
     
-    // Interface for real-time search text changes
     public interface SearchTextChangeListener {
         void textChanged(String text);
     }

@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Image;
@@ -34,13 +35,12 @@ import java.awt.Image;
 public class Menu extends JPanel {
 
     private final String menuItems[][] = {
-        {"Homepage"},
+        {"Home"},
         {"Products", "VGA", "CPU", "Mainboard"},
         {"Cart"},
         {"Shopping History"},
         {"~OTHER~"},
-        {"Personal Information"},
-        {"Logout"}
+        {"User", "Personal Information", "Logout"}
     };
 
     public boolean isMenuFull() {
@@ -48,20 +48,31 @@ public class Menu extends JPanel {
     }
 
     public void setMenuFull(boolean menuFull) {
+        if (this.menuFull == menuFull || isAnimating) {
+            return;
+        }
+        
         this.menuFull = menuFull;
+        
         if (menuFull) {
             header.setText(headerName);
-            header.setHorizontalAlignment(getComponentOrientation().isLeftToRight() ? JLabel.LEFT : JLabel.RIGHT);
+            header.setHorizontalAlignment(JLabel.CENTER);
+            header.setHorizontalTextPosition(JLabel.RIGHT);
+            header.setIconTextGap(10);
         } else {
             header.setText("");
             header.setHorizontalAlignment(JLabel.CENTER);
         }
+        
         for (Component com : panelMenu.getComponents()) {
             if (com instanceof MenuItem) {
                 ((MenuItem) com).setFull(menuFull);
             }
         }
+        
         toolBarAccentColor.setMenuFull(menuFull);
+        
+        startAnimation();
     }
 
     private final List<MenuEvent> events = new ArrayList<>();
@@ -78,8 +89,15 @@ public class Menu extends JPanel {
     private JLabel gigi;
     private final int gigiSize = 250;
 
+    private boolean isAnimating = false;
+    private int currentWidth;
+    private Timer animationTimer;
+    private final int ANIMATION_DURATION = 200;
+    private final int ANIMATION_STEPS = 20;
+
     public Menu() {
         init();
+        currentWidth = menuMaxWidth;
     }
 
     private void init() {
@@ -101,6 +119,9 @@ public class Menu extends JPanel {
         g2.dispose();
         
         header.setIcon(new ImageIcon(circleBuffer));
+        header.setHorizontalAlignment(JLabel.CENTER);
+        header.setHorizontalTextPosition(JLabel.RIGHT);
+        header.setIconTextGap(10);
         header.putClientProperty(FlatClientProperties.STYLE, ""
                 + "font:$Menu.header.font;"
                 + "foreground:$Menu.foreground");
@@ -235,6 +256,48 @@ public class Menu extends JPanel {
     private JPanel panelMenu;
     private ToolBarAccentColor toolBarAccentColor;
 
+    public boolean isAnimating() {
+        return isAnimating;
+    }
+
+    private void startAnimation() {
+        isAnimating = true;
+        final int targetWidth = menuFull ? menuMaxWidth : menuMinWidth;
+        final int startWidth = currentWidth;
+        final int difference = targetWidth - startWidth;
+        final int steps = ANIMATION_STEPS;
+        final int delay = ANIMATION_DURATION / steps;
+        
+        if (animationTimer != null && animationTimer.isRunning()) {
+            animationTimer.stop();
+        }
+        
+        final int[] step = {0};
+        
+        animationTimer = new Timer(delay, e -> {
+            step[0]++;
+            
+            if (step[0] >= steps) {
+                currentWidth = targetWidth;
+                isAnimating = false;
+                animationTimer.stop();
+            } else {
+                float progress = (float) step[0] / steps;
+                float easedProgress = cubicEaseInOut(progress);
+                currentWidth = startWidth + (int) (difference * easedProgress);
+            }
+            
+            revalidate();
+            repaint();
+        });
+        
+        animationTimer.start();
+    }
+    
+    private float cubicEaseInOut(float t) {
+        return t < 0.5f ? 4 * t * t * t : 1 - (float)Math.pow(-2 * t + 2, 3) / 2;
+    }
+
     private class MenuLayout implements LayoutManager {
 
         @Override
@@ -267,9 +330,11 @@ public class Menu extends JPanel {
                 int y = insets.top;
                 int gap = UIScale.scale(5);
                 int sheaderFullHgap = UIScale.scale(headerFullHgap);
-                int width = parent.getWidth() - (insets.left + insets.right);
+                
+                int width = isAnimating ? currentWidth : (menuFull ? menuMaxWidth : menuMinWidth);
+                
                 int height = parent.getHeight() - (insets.top + insets.bottom);
-                int iconWidth = width;
+                int iconWidth = width - (insets.left + insets.right);
                 int iconHeight = header.getPreferredSize().height;
                 int hgap = menuFull ? sheaderFullHgap : 0;
                 int accentColorHeight = 0;
@@ -277,12 +342,12 @@ public class Menu extends JPanel {
                     accentColorHeight = toolBarAccentColor.getPreferredSize().height+gap;
                 }
 
-                header.setBounds(x + hgap, y, iconWidth - (hgap * 2), iconHeight);
+                header.setBounds(x, y, iconWidth, iconHeight);
                 
                 int ldgap = UIScale.scale(10);
                 int menux = x;
                 int menuy = y + iconHeight + gap;
-                int menuWidth = width;
+                int menuWidth = width - (insets.left + insets.right);
                 int menuHeight = height - (iconHeight + gap) - accentColorHeight - gigiSize;
                 scroll.setBounds(menux, menuy, menuWidth, menuHeight);
 
@@ -294,8 +359,14 @@ public class Menu extends JPanel {
                     toolBarAccentColor.setBounds(tbx, tby, tbwidth, tbheight);
                 }
 
-                gigi.setBounds(x, height - gigiSize + insets.top, width, gigiSize);
+                gigi.setBounds(x, height - gigiSize + insets.top, width - (insets.left + insets.right), gigiSize);
+                
+                parent.setPreferredSize(new Dimension(width, parent.getHeight()));
             }
         }
+    }
+
+    public int getCurrentWidth() {
+        return isAnimating ? currentWidth : (menuFull ? menuMaxWidth : menuMinWidth);
     }
 }

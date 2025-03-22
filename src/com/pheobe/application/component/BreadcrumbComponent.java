@@ -62,12 +62,15 @@ public class BreadcrumbComponent extends JPanel {
     private void updateBreadcrumbDisplay() {
         breadcrumbPanel.removeAll();
         
+        breadcrumbPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+        
         JButton homeButton = new JButton("Home");
         homeButton.setBorderPainted(false);
         homeButton.setContentAreaFilled(false);
         homeButton.setForeground(new Color(0, 123, 255));
         homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         homeButton.putClientProperty(FlatClientProperties.STYLE, "font: bold");
+        homeButton.setMargin(new Insets(0, 0, 0, 0));
         homeButton.addActionListener(e -> {
             navigateToHome();
 
@@ -95,6 +98,7 @@ public class BreadcrumbComponent extends JPanel {
                 button.setBorderPainted(false);
                 button.setContentAreaFilled(false);
                 button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                button.setMargin(new Insets(0, 0, 0, 0));
                 button.putClientProperty(FlatClientProperties.STYLE, "font: bold");
                 button.addActionListener(e -> {
                     navigateTo(index);

@@ -24,6 +24,7 @@ import com.pheobe.application.form.other.FormRead;
 import com.pheobe.application.form.other.FormHistory;
 import com.pheobe.application.menu.Menu;
 import com.pheobe.application.menu.MenuAction;
+import javax.swing.Timer;
 
 /**
  *
@@ -76,15 +77,23 @@ public class MainForm extends JLayeredPane {
             if (index == 0) {
                 Application.showForm(new FormDashboard());
             } else if (index == 1) {
-                Application.showForm(new FormCart1());
+               if (subIndex == 1) {
+                Application.showForm(new FormDashboard());
+               } else if (subIndex == 2) {
+                Application.showForm(new FormDashboard());
+               } else if (subIndex == 3) {
+                Application.showForm(new FormDashboard());
+               }
             } else if (index == 2) {
-                Application.showForm(new FormHistory());
+                Application.showForm(new FormCart1());
             } else if (index == 3) {
-                Application.showForm(new FormInbox());
+                Application.showForm(new FormHistory());
             } else if (index == 4) {
-                Application.showForm(new FormCustomerInfromation());
-            } else if (index == 9) {
-                Application.logout();
+                if (subIndex == 1) {
+                    Application.showForm(new FormCustomerInfromation());
+                } else if (subIndex == 2) {
+                    Application.logout();
+                }
             } else {
                 action.cancel();
             }
@@ -99,8 +108,18 @@ public class MainForm extends JLayeredPane {
             icon = (full) ? "menu_right.svg" : "menu_left.svg";
         }
         menuButton.setIcon(new FlatSVGIcon("com/pheobe/icon/svg/" + icon, 0.8f));
+        
         menu.setMenuFull(full);
-        revalidate();
+        
+        Timer animationUpdateTimer = new Timer(16, e -> {
+            revalidate();
+            repaint();
+            
+            if (!menu.isAnimating()) {
+                ((Timer)e.getSource()).stop();
+            }
+        });
+        animationUpdateTimer.start();
     }
 
     public void hideMenu() {
@@ -155,17 +174,25 @@ public class MainForm extends JLayeredPane {
                 int y = insets.top;
                 int width = parent.getWidth() - (insets.left + insets.right);
                 int height = parent.getHeight() - (insets.top + insets.bottom);
-                int menuWidth = UIScale.scale(menu.isMenuFull() ? menu.getMenuMaxWidth() : menu.getMenuMinWidth());
+                
+                int menuWidth = UIScale.scale(menu.getCurrentWidth());
+                
                 int menuX = ltr ? x : x + width - menuWidth;
                 menu.setBounds(menuX, y, menuWidth, height);
                 int menuButtonWidth = menuButton.getPreferredSize().width;
                 int menuButtonHeight = menuButton.getPreferredSize().height;
+                
                 int menubX;
+                float animationProgress = (float)(menuWidth - UIScale.scale(menu.getMenuMinWidth())) / 
+                                         (float)(UIScale.scale(menu.getMenuMaxWidth() - menu.getMenuMinWidth()));
                 if (ltr) {
-                    menubX = (int) (x + menuWidth - (menuButtonWidth * (menu.isMenuFull() ? 0.5f : 0.3f)));
+                    float offsetFactor = 0.5f - (0.2f * (1.0f - animationProgress));
+                    menubX = (int) (x + menuWidth - (menuButtonWidth * offsetFactor));
                 } else {
-                    menubX = (int) (menuX - (menuButtonWidth * (menu.isMenuFull() ? 0.5f : 0.7f)));
+                    float offsetFactor = 0.5f + (0.2f * (1.0f - animationProgress));
+                    menubX = (int) (menuX - (menuButtonWidth * offsetFactor));
                 }
+                
                 menuButton.setBounds(menubX, UIScale.scale(30), menuButtonWidth, menuButtonHeight);
                 int gap = UIScale.scale(5);
                 int bodyWidth = width - menuWidth - gap;
@@ -173,6 +200,8 @@ public class MainForm extends JLayeredPane {
                 int bodyx = ltr ? (x + menuWidth + gap) : x;
                 int bodyy = y;
                 panelBody.setBounds(bodyx, bodyy, bodyWidth, bodyHeight);
+                
+                parent.repaint();
             }
         }
     }

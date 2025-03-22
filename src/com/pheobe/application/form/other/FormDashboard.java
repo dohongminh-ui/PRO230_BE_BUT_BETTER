@@ -13,6 +13,7 @@ import com.pheobe.service.Product_DAO;
 import com.pheobe.service.Brand_DAO;
 import com.pheobe.service.Category_DAO;
 import raven.toast.Notifications;
+import com.pheobe.application.manager.BreadcrumbManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +31,7 @@ public class FormDashboard extends javax.swing.JPanel {
     private Product_DAO product_DAO;
     private Brand_DAO brand_DAO;
     private Category_DAO category_DAO;
+    private BreadcrumbManager breadcrumbManager;
 
     public FormDashboard() {
         initComponents();
@@ -38,6 +40,18 @@ public class FormDashboard extends javax.swing.JPanel {
         product_DAO = new Product_DAO();
         brand_DAO = new Brand_DAO();
         category_DAO = new Category_DAO();
+        
+        breadcrumbManager = BreadcrumbManager.getInstance();
+        breadcrumbManager.clear();
+        breadcrumbManager.addBreadcrumb("Home", this);
+        
+        breadcrumbManager.getBreadcrumb().setBreadcrumbListener((item, index) -> {
+            if (index == -1) {
+                Application.showForm(this);
+            } else if (item instanceof Component) {
+                Application.showForm((Component) item);
+            }
+        });
 
         initSearchComponent();
         initProductPanel();
@@ -159,7 +173,12 @@ public class FormDashboard extends javax.swing.JPanel {
 
     private void showProductDetail(Product product, Brand brand, Category category) {
         ProductDetailComponent detailPanel = new ProductDetailComponent(product, brand, category);
-        detailPanel.setupBreadcrumb("Products", this);
+        
+        breadcrumbManager.addBreadcrumb(product.getName(), detailPanel);
+        
+        detailPanel.addBackButtonListener(e -> {
+            Application.showForm(this);
+        });
         
         detailPanel.addAddToCartListener(e -> {
             int quantity = detailPanel.getQuantity();

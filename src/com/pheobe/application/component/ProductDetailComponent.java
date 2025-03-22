@@ -42,86 +42,110 @@ public class ProductDetailComponent extends JPanel {
         setLayout(new BorderLayout(20, 20));
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBorder(new EmptyBorder(5, 0, 10, 0));
-
+        JPanel headerPanel = new JPanel(new GridLayout(2, 1, 0, 5));
+        headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        headerPanel.setOpaque(false);
+        
+        JPanel backButtonRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        backButtonRow.setOpaque(false);
+        
         backButton = new JButton("Back");
         backButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
         backButton.addActionListener(e -> {
             BreadcrumbManager.getInstance().navigateBack();
         });
-        headerPanel.add(backButton, BorderLayout.EAST);
-        headerPanel.add(BreadcrumbManager.getInstance().getBreadcrumb(), BorderLayout.NORTH);
+        
+        backButtonRow.add(backButton);
+        headerPanel.add(backButtonRow);
+        
+        JPanel breadcrumbRow = new JPanel(new BorderLayout());
+        breadcrumbRow.setOpaque(false);
+        breadcrumbRow.add(BreadcrumbManager.getInstance().getBreadcrumb(), BorderLayout.CENTER);
+        headerPanel.add(breadcrumbRow);
+        
         add(headerPanel, BorderLayout.NORTH);
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         imageLabel = new JLabel();
-        imageLabel.setPreferredSize(new Dimension(300, 300));
+        imageLabel.setPreferredSize(new Dimension(150, 150));
         imageLabel.setHorizontalAlignment(JLabel.CENTER);
-        leftPanel.add(imageLabel, BorderLayout.CENTER);
+        leftPanel.add(imageLabel, BorderLayout.NORTH);
         add(leftPanel, BorderLayout.WEST);
 
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setBorder(new EmptyBorder(10, 20, 10, 10));
-
+        JPanel infoPanel = new JPanel(new GridBagLayout());
+        infoPanel.setBorder(new EmptyBorder(0, 20, 0, 0));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 5, 0);
+        gbc.weightx = 1.0;
+        
         nameLabel = new JLabel(product.getName());
         nameLabel.putClientProperty(FlatClientProperties.STYLE, "font: $h2.font");
-        nameLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-
+        infoPanel.add(nameLabel, gbc);
+        
+        gbc.gridy++;
         priceLabel = new JLabel("$" + product.getPrice());
         priceLabel.putClientProperty(FlatClientProperties.STYLE, "font: bold $h3.font");
-        priceLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-
+        infoPanel.add(priceLabel, gbc);
+        
+        gbc.gridy++;
         brandLabel = new JLabel(brand.getName() + " | " + category.getName());
         brandLabel.putClientProperty(FlatClientProperties.STYLE, "font: $h4.font");
-        brandLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-
-        stockLabel = new JLabel("In Stock: " + product.getStock());
-        stockLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+        infoPanel.add(brandLabel, gbc);
         
+        gbc.gridy++;
+        stockLabel = new JLabel("In Stock: " + product.getStock());
+        infoPanel.add(stockLabel, gbc);
+        
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 0, 3, 0);
         JLabel descriptionLabel = new JLabel("Description:");
         descriptionLabel.putClientProperty(FlatClientProperties.STYLE, "font: bold");
-        descriptionLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+        infoPanel.add(descriptionLabel, gbc);
         
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 10, 0);
         descriptionArea = new JTextArea(product.getDescription());
         descriptionArea.setEditable(false);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
         descriptionArea.setBackground(getBackground());
         descriptionArea.setRows(5);
-        descriptionArea.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+        infoPanel.add(descriptionArea, gbc);
         
-        JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        quantityPanel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
-        
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         JLabel quantityLabel = new JLabel("Quantity:");
         SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, product.getStock(), 1);
         quantitySpinner = new JSpinner(spinnerModel);
         quantitySpinner.setPreferredSize(new Dimension(60, 25));
-        
         quantityPanel.add(quantityLabel);
         quantityPanel.add(quantitySpinner);
+        infoPanel.add(quantityPanel, gbc);
+        
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
         
         addToCartButton = new JButton("Add to Cart");
         addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
-        addToCartButton.setAlignmentX(JButton.LEFT_ALIGNMENT);
-
-        infoPanel.add(nameLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(priceLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(brandLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(stockLabel);
-        infoPanel.add(Box.createVerticalStrut(20));
-        infoPanel.add(descriptionLabel);
-        infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(descriptionArea);
-        infoPanel.add(Box.createVerticalStrut(20));
-        infoPanel.add(quantityPanel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(addToCartButton);
+        addToCartButton.setPreferredSize(new Dimension(120, 30));
+        infoPanel.add(addToCartButton, gbc);
+        
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        gbc.gridy++;
+        gbc.weighty = 1.0;
+        JPanel fillerPanel = new JPanel();
+        fillerPanel.setOpaque(false);
+        infoPanel.add(fillerPanel, gbc);
 
         add(infoPanel, BorderLayout.CENTER);
     }
@@ -187,7 +211,7 @@ public class ProductDetailComponent extends JPanel {
 
     public void setupBreadcrumb(String previousPageName, Component previousComponent) {
         BreadcrumbManager breadcrumbManager = BreadcrumbManager.getInstance();
-        breadcrumbManager.clear();
+        
         breadcrumbManager.addBreadcrumb(product.getName(), this);
     }
 }

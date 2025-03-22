@@ -32,6 +32,7 @@ public class PopupSubmenu extends JPanel {
     private final int subMenuItemHeight = 30;
     private final String menus[];
     private JPopupMenu popup;
+    private boolean isVisible = false;
 
     public PopupSubmenu(ComponentOrientation orientation, Menu menu, int menuIndex, String menus[]) {
         this.menu = menu;
@@ -78,13 +79,33 @@ public class PopupSubmenu extends JPanel {
         return button;
     }
 
+    public boolean isPopupVisible() {
+        return isVisible;
+    }
+
+    public void toggle(Component com, int x, int y) {
+        if (isVisible) {
+            popup.setVisible(false);
+            isVisible = false;
+        } else {
+            show(com, x, y);
+        }
+    }
+
     public void show(Component com, int x, int y) {
+        if (isVisible) {
+            popup.setVisible(false);
+            isVisible = false;
+            return;
+        }
+
         if (menu.getComponentOrientation().isLeftToRight()) {
             popup.show(com, x, y);
         } else {
             int px = getPreferredSize().width + UIScale.scale(5);
             popup.show(com, -px, y);
         }
+        isVisible = true;
         applyAlignment();
         SwingUtilities.updateComponentTreeUI(popup);
     }
@@ -138,6 +159,14 @@ public class PopupSubmenu extends JPanel {
         p2.moveTo(x, y - round);
         p2.curveTo(x, y - round, x, y, x + (ltr ? round : -round), y);
         return p2;
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (!visible) {
+            isVisible = false;
+        }
     }
 
     private class MenuLayout implements LayoutManager {

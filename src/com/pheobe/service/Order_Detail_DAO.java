@@ -158,6 +158,27 @@ public class Order_Detail_DAO {
         return false;
     }
     
+    public boolean OrderDetailGetProductname(Order_Detail orderDetail) {
+        try {
+            PreparedStatement statement = con.prepareStatement(updateOrderDetail);
+            statement.setInt(1, orderDetail.getOrderID());
+            statement.setInt(2, orderDetail.getProductID());
+            statement.setBigDecimal(3, orderDetail.getPrice());
+            statement.setInt(4, orderDetail.getQuantity());
+            statement.setString(5, orderDetail.getStatus());
+            statement.setObject(6, orderDetail.getProductColorId());
+            statement.setInt(7, orderDetail.getOrderDetailID());
+            
+            int row = statement.executeUpdate();
+            return row > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    
+    
     public boolean deleteOrderDetail(int id) {
         try {
             PreparedStatement statement = con.prepareStatement(deleteOrderDetail);

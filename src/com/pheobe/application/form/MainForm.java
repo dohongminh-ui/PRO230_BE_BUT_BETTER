@@ -21,6 +21,7 @@ import com.pheobe.application.form.other.FormCustomerInfromation;
 import com.pheobe.application.form.other.FormDashboard;
 import com.pheobe.application.form.other.FormInbox;
 import com.pheobe.application.form.other.FormRead;
+import com.pheobe.application.form.other.FormHistory;
 import com.pheobe.application.menu.Menu;
 import com.pheobe.application.menu.MenuAction;
 
@@ -77,7 +78,7 @@ public class MainForm extends JLayeredPane {
             } else if (index == 1) {
                 Application.showForm(new FormCart1());
             } else if (index == 2) {
-                Application.showForm(new FormRead());
+                Application.showForm(new FormHistory());
             } else if (index == 3) {
                 Application.showForm(new FormInbox());
             } else if (index == 4) {

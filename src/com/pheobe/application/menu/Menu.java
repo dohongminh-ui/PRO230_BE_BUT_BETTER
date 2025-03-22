@@ -34,10 +34,9 @@ import java.awt.Image;
 public class Menu extends JPanel {
 
     private final String menuItems[][] = {
-        {"~PRODUCTS~"},
-        {"Products", "All", "VGA", "CPU", "Mainboard"},
+        {"Homepage"},
+        {"Products", "VGA", "CPU", "Mainboard"},
         {"Cart"},
-        {"Track Order"},
         {"Shopping History"},
         {"~OTHER~"},
         {"Personal Information"},

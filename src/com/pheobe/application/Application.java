@@ -17,6 +17,8 @@ import com.pheobe.application.form.MainForm;
 import com.pheobe.connection.DBcontext;
 import com.pheobe.model.Customer;
 import com.pheobe.service.ServiceUser;
+import com.pheobe.application.manager.BreadcrumbManager;
+import com.pheobe.application.form.other.FormDashboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
@@ -207,7 +209,7 @@ public class Application extends javax.swing.JFrame {
         // }
     }
 
-    private void showMessage(Notifications.Type type, String message) {
+    public static void showMessage(Notifications.Type type, String message) {
         System.out.println("Showing notification: " + message + " (Type: " + type + ")");
         
         SwingUtilities.invokeLater(() -> {
@@ -217,6 +219,12 @@ public class Application extends javax.swing.JFrame {
 
     public static void showForm(Component component) {
         component.applyComponentOrientation(app.getComponentOrientation());
+
+        System.out.println(component.getClass().getSimpleName());
+
+        if (component instanceof FormDashboard) {
+            BreadcrumbManager.getInstance().navigateToHome();
+        }
         
         if (!(component instanceof MainForm)) {
             app.mainForm.showForm(component);

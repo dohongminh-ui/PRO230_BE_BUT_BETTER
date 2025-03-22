@@ -4,12 +4,15 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.pheobe.application.component.SearchComponent;
 import com.pheobe.application.component.ProductCardComponent;
 import com.pheobe.application.component.WrapLayout;
+import com.pheobe.application.component.ProductDetailComponent;
 import com.pheobe.model.Product;
 import com.pheobe.model.Brand;
+import com.pheobe.application.Application;
 import com.pheobe.model.Category;
 import com.pheobe.service.Product_DAO;
 import com.pheobe.service.Brand_DAO;
 import com.pheobe.service.Category_DAO;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
@@ -123,6 +126,12 @@ public class FormDashboard extends javax.swing.JPanel {
                 if (brand != null && category != null) {
                     ProductCardComponent productCard = new ProductCardComponent(product, brand, category);
                     productCard.addAddToCartListener(e -> addToCart(product));
+
+                    productCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                        public void mouseClicked(java.awt.event.MouseEvent evt) {
+                            showProductDetail(product, brand, category);
+                        }
+                    });
                     productsPanel.add(productCard);
                 }
             }
@@ -148,6 +157,19 @@ public class FormDashboard extends javax.swing.JPanel {
         System.out.println("Text changed: " + text);
     }
 
+    private void showProductDetail(Product product, Brand brand, Category category) {
+        ProductDetailComponent detailPanel = new ProductDetailComponent(product, brand, category);
+        detailPanel.setupBreadcrumb("Products", this);
+        
+        detailPanel.addAddToCartListener(e -> {
+            int quantity = detailPanel.getQuantity();
+            addToCart(product);
+            Application.showMessage(Notifications.Type.SUCCESS, quantity + " item added to cart");
+        });
+
+        Application.showForm(detailPanel);
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -155,7 +177,7 @@ public class FormDashboard extends javax.swing.JPanel {
         lb = new javax.swing.JLabel();
 
         lb.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb.setText("gimuinininininnnnnnn");
+        lb.setText("Dashboard");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

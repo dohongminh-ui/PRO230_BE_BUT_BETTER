@@ -12,7 +12,10 @@ import com.pheobe.service.Product_Color_DAO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class ProductCardComponent extends JPanel {
@@ -25,6 +28,7 @@ public class ProductCardComponent extends JPanel {
     private JLabel brandLabel;
     private JLabel stockLabel;
     private JButton addToCart;
+    private ActionListener viewDetailsListener;
 
     public ProductCardComponent(Product product, Brand brand, Category category) {
         this.product = product;
@@ -33,6 +37,7 @@ public class ProductCardComponent extends JPanel {
 
         init();
         loadImage();
+        setupClickableCard();
     }
 
     private void init() {
@@ -117,8 +122,37 @@ public class ProductCardComponent extends JPanel {
         worker.execute();
     }
 
+    private void setupClickableCard() {
+        setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (viewDetailsListener != null) {
+                    viewDetailsListener.actionPerformed(
+                        new java.awt.event.ActionEvent(this, ActionEvent.ACTION_PERFORMED, "cardClicked")
+                    );
+                }
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                setBackground(new Color(245, 245, 245));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                setBackground(UIManager.getColor("Panel.background"));
+            }
+        });
+    }
+
     public void addAddToCartListener(ActionListener listener) {
         addToCart.addActionListener(listener);
+    }
+
+    public void addViewDetailsListener(ActionListener listener) {
+        this.viewDetailsListener = listener;
     }
 
     public Product getProduct() {

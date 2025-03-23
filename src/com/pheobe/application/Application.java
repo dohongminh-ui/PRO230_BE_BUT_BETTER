@@ -175,40 +175,40 @@ public class Application extends javax.swing.JFrame {
 
     private void authenticateUser() {
         
-        // try {
-        //     Customer testUser = new Customer();
-        //     testUser.setUserName("testuser");
-        //     testUser.setEmail("test@example.com");
-        //     testUser.setPassword("password");
-            
-        //     currentUser = testUser;
-            
-        //     login();
-        //     showForm(mainForm);
-        //     setSelectedMenu(0, 0);
-            
-        //     showMessage(Notifications.Type.SUCCESS, "Logged in as mmb");
-            
-        // } catch (Exception e) {
-        //     showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
-        //     e.printStackTrace();
-        // }
-        
-        
-        Customer data = loginAndRegister.getDataLogin();
         try {
-            Customer user = service.login(data);
-            if (user != null) {
-                currentUser = user;
-                login();
-                showForm(mainForm);
-                setSelectedMenu(0, 0);
-            } else {
-                showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
-            }
-        } catch (SQLException e) {
-            showMessage(Notifications.Type.ERROR, "Error during login");
+            Customer testUser = new Customer();
+            testUser.setUserName("mmb");
+            testUser.setEmail("test@example.com");
+            testUser.setPassword("password");
+            
+            currentUser = testUser;
+            
+            login();
+            showForm(mainForm);
+            setSelectedMenu(0, 0);
+            
+            showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+            
+        } catch (Exception e) {
+            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
+            e.printStackTrace();
         }
+        
+        
+      //   Customer data = loginAndRegister.getDataLogin();
+      //   try {
+      //       Customer user = service.login(data);
+      //       if (user != null) {
+      //           currentUser = user;
+      //           login();
+      //           showForm(mainForm);
+      //           setSelectedMenu(0, 0);
+      //       } else {
+      //           showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+      //       }
+      //   } catch (SQLException e) {
+      //       showMessage(Notifications.Type.ERROR, "Error during login");
+      //   }
     }
 
     public static void showMessage(Notifications.Type type, String message) {
@@ -245,7 +245,7 @@ public class Application extends javax.swing.JFrame {
                 menu.setUsername(currentUser.getUserName());
             }
 
-            menu.setUserProfileIconFromFile("com/pheobe/icon/pfp/0.png");
+            menu.setUserProfileIconFromFile("0.png");
 
             System.out.println("scuesss");
         } else {

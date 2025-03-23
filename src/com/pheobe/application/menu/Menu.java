@@ -406,11 +406,22 @@ public class Menu extends JPanel {
         }
     }
     
-    public void setUserProfileIconFromFile(String filePath) {
+    public void setUserProfileIconFromFile(String fileName) {
         try {
-            BufferedImage image = ImageIO.read(new File(filePath));
+            String defaultPath = "com/pheobe/icon/pfp/";
+            
+            if (!fileName.contains(defaultPath)) {
+                fileName = defaultPath + fileName;
+            }
+            
+            BufferedImage image = ImageIO.read(getClass().getResource("/" + fileName));
             if (image != null) {
                 setUserProfileIcon(image);
+            } else {
+                image = ImageIO.read(new File(fileName));
+                if (image != null) {
+                    setUserProfileIcon(image);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

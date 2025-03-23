@@ -19,6 +19,7 @@ import com.pheobe.model.Customer;
 import com.pheobe.service.ServiceUser;
 import com.pheobe.application.manager.BreadcrumbManager;
 import com.pheobe.application.form.other.FormDashboard;
+import com.pheobe.application.menu.Menu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
@@ -174,40 +175,40 @@ public class Application extends javax.swing.JFrame {
 
     private void authenticateUser() {
         
-        try {
-            Customer testUser = new Customer();
-            testUser.setUserName("testuser");
-            testUser.setEmail("test@example.com");
-            testUser.setPassword("password");
-            
-            currentUser = testUser;
-            
-            login();
-            showForm(mainForm);
-            setSelectedMenu(0, 0);
-            
-            showMessage(Notifications.Type.SUCCESS, "Logged in as mmb");
-            
-        } catch (Exception e) {
-            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        
-        // Customer data = loginAndRegister.getDataLogin();
         // try {
-        //     Customer user = service.login(data);
-        //     if (user != null) {
-        //         currentUser = user;
-        //         login();
-        //         showForm(mainForm);
-        //         setSelectedMenu(0, 0);
-        //     } else {
-        //         showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
-        //     }
-        // } catch (SQLException e) {
-        //     showMessage(Notifications.Type.ERROR, "Error during login");
+        //     Customer testUser = new Customer();
+        //     testUser.setUserName("testuser");
+        //     testUser.setEmail("test@example.com");
+        //     testUser.setPassword("password");
+            
+        //     currentUser = testUser;
+            
+        //     login();
+        //     showForm(mainForm);
+        //     setSelectedMenu(0, 0);
+            
+        //     showMessage(Notifications.Type.SUCCESS, "Logged in as mmb");
+            
+        // } catch (Exception e) {
+        //     showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
+        //     e.printStackTrace();
         // }
+        
+        
+        Customer data = loginAndRegister.getDataLogin();
+        try {
+            Customer user = service.login(data);
+            if (user != null) {
+                currentUser = user;
+                login();
+                showForm(mainForm);
+                setSelectedMenu(0, 0);
+            } else {
+                showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+            }
+        } catch (SQLException e) {
+            showMessage(Notifications.Type.ERROR, "Error during login");
+        }
     }
 
     public static void showMessage(Notifications.Type type, String message) {
@@ -237,8 +238,19 @@ public class Application extends javax.swing.JFrame {
         app.setContentPane(app.mainForm);
         app.mainForm.applyComponentOrientation(app.getComponentOrientation());
         
-        // Update title or user display if needed
-        // If you want to display the username in the UI, you can do it here
+        if (currentUser != null) {
+            Menu menu = app.mainForm.getMenu();
+
+            if (menu != null) {
+                menu.setUsername(currentUser.getUserName());
+            }
+
+            menu.setUserProfileIconFromFile("com/pheobe/icon/pfp/0.png");
+
+            System.out.println("scuesss");
+        } else {
+            System.out.println("error");
+        }
         
         setSelectedMenu(0, 0);
         app.mainForm.hideMenu();

@@ -241,4 +241,10 @@ public class PopupSubmenu extends JPanel {
             return Math.max(max, maxWidth);
         }
     }
+
+    public void updateMenuName(int index, String newName) {
+        if (index >= 0 && index < menus.length) {
+            menus[index] = newName;
+        }
+    }
 }

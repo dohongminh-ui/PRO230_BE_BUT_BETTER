@@ -19,8 +19,11 @@ import java.awt.event.ActionEvent;
 import java.awt.geom.Path2D;
 import java.util.List;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import java.awt.image.BufferedImage;
+
 
 /**
  *
@@ -321,6 +324,30 @@ public class MenuItem extends JPanel {
                     }
                 }
             }
+        }
+    }
+
+    public void updateMenuName(String newName) {
+        if (menus.length > 0) {
+            menus[0] = newName;
+
+            if (menu.isMenuFull()) {
+                Component comp = getComponent(0);
+                if (comp instanceof JButton) {
+                    ((JButton) comp).setText(newName);
+                }
+            }
+
+            if (popup != null) {
+                popup.updateMenuName(0, newName);
+            }
+        }
+    }
+
+    public void setMenuIcon(Icon icon) {
+        if (getComponentCount() > 0 && getComponent(0) instanceof JButton) {
+            JButton mainButton = (JButton) getComponent(0);
+            mainButton.setIcon(icon);
         }
     }
 }

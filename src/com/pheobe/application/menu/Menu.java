@@ -27,6 +27,10 @@ import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Image;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -42,6 +46,8 @@ public class Menu extends JPanel {
         {"~OTHER~"},
         {"User", "Personal Information", "Logout"}
     };
+
+    private static final int USER_MENU_INDEX = 4;
 
     public boolean isMenuFull() {
         return menuFull;
@@ -368,5 +374,72 @@ public class Menu extends JPanel {
 
     public int getCurrentWidth() {
         return isAnimating ? currentWidth : (menuFull ? menuMaxWidth : menuMinWidth);
+    }
+
+    public void setUsername(String username) {
+        for (int i = 0; i < panelMenu.getComponentCount(); i++) {
+            Component com = panelMenu.getComponent(i);
+            if (com instanceof MenuItem) {
+                MenuItem item = (MenuItem) com;
+                if (item.getMenuIndex() == USER_MENU_INDEX) {
+                    item.updateMenuName(username);
+                    break;
+                }
+            }
+        }
+        revalidate();
+        repaint();
+    }
+
+    public void setUserProfileIcon(byte[] imageData) {
+        if (imageData == null || imageData.length == 0) {
+            return;
+        }
+        
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageData));
+            if (image != null) {
+                setUserProfileIcon(image);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void setUserProfileIconFromFile(String filePath) {
+        try {
+            BufferedImage image = ImageIO.read(new File(filePath));
+            if (image != null) {
+                setUserProfileIcon(image);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void setUserProfileIcon(BufferedImage image) {
+        int size = UIScale.scale(24);
+        
+        BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = circleBuffer.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.fill(new Ellipse2D.Double(0, 0, size, size));
+        g2.setComposite(AlphaComposite.SrcIn);
+        
+        Image scaledImage = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+        g2.drawImage(scaledImage, 0, 0, null);
+        g2.dispose();
+        
+        ImageIcon icon = new ImageIcon(circleBuffer);
+        
+        for (Component com : panelMenu.getComponents()) {
+            if (com instanceof MenuItem) {
+                MenuItem item = (MenuItem) com;
+                if (item.getMenuIndex() == USER_MENU_INDEX) {
+                    item.setMenuIcon(icon);
+                    break;
+                }
+            }
+        }
     }
 }

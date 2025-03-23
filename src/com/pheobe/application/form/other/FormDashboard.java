@@ -192,7 +192,7 @@ public class FormDashboard extends javax.swing.JPanel {
     }
     
     private void updateSearchResults(String text) {
-        if (text == null || text.trim().length() < 4) {
+        if (text == null || text.trim().length() < 1) {
             if (text.isEmpty()) {
                 loadProducts();
             }
@@ -201,7 +201,7 @@ public class FormDashboard extends javax.swing.JPanel {
         List<Product> searchResults = product_DAO.searchProductsByName(text);
         
         productsPanel.removeAll();
-        
+
         if (searchResults.isEmpty()) {
             showMessage(Notifications.Type.INFO, "No results found");
         } else {

@@ -24,7 +24,7 @@ public class Cart_Detail_DAO {
     private String queryToSelectByID = "SELECT * FROM Cart_detail WHERE cartDetailID = ?";
     private String queryToInsert = "INSERT INTO Cart_detail (cartID, productId, price, quantity, status, createDate, productColorId) VALUES (?, ?, ?, ?, ?, ?, ?)";
     private String queryToUpdate = "UPDATE Cart_detail SET cartID = ?, productId = ?, price = ?, quantity = ?, status = ?, productColorId = ? WHERE cartDetailID = ?";
-    private String queryToDelete = "DELETE FROM Cart_detail WHERE cartDetailID = ?";
+    private String queryToDelete = "DELETE FROM Cart_detail WHERE ProductId = ?";
 
     private Connection con = DBcontext.getConnection();
 

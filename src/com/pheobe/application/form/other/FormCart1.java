@@ -1,17 +1,26 @@
 package com.pheobe.application.form.other;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.pheobe.model.Cart;
 import com.pheobe.model.Cart_detail;
 import com.pheobe.model.Product;
 import com.pheobe.service.Cart_DAO;
 import com.pheobe.service.Cart_Detail_DAO;
 import com.pheobe.service.Product_DAO;
+import com.pheobe.application.Application;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static java.time.LocalDateTime.now;
 import java.util.List;
+import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import raven.toast.Notifications;
 
 /**
  *
@@ -39,8 +48,18 @@ public class FormCart1 extends javax.swing.JPanel {
                 border: 0,0,0,0
                 """);
         dtm = (DefaultTableModel) tbtCart.getModel();
+
+        if (tbtCart.getColumnCount() < 4) {
+            String[] columnNames = {"Product", "Quantity", "Price", "Action"};
+            dtm = new DefaultTableModel(columnNames, 0);
+            tbtCart.setModel(dtm);
+        }
+
+        tbtCart.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+        tbtCart.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor());
+
         refreshCart();
-        
+
     }
 
     @SuppressWarnings("unchecked")
@@ -84,13 +103,13 @@ public class FormCart1 extends javax.swing.JPanel {
 
         tbtCart.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Product", "Quantity", "Price", "Action"
+                "", "Product", "Quantity", "Price", "Action"
             }
         ));
         jScrollPane1.setViewportView(tbtCart);
@@ -100,14 +119,15 @@ public class FormCart1 extends javax.swing.JPanel {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(70, 70, 70)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
-                        .addGap(20, 20, 20))
-                    .addGroup(layout.createSequentialGroup()
+                        .addGap(70, 70, 70)
                         .addComponent(lblCart)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 356, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE)
+                        .addGap(30, 30, 30)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -138,18 +158,18 @@ public class FormCart1 extends javax.swing.JPanel {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCheckOut)
-                .addGap(288, 288, 288))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(41, 41, 41)
                 .addComponent(lblCart, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1)
-                .addGap(13, 13, 13))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 356, Short.MAX_VALUE)
+                .addGap(21, 21, 21))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCheckOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCheckOutActionPerformed
-
+        
     }//GEN-LAST:event_btnCheckOutActionPerformed
 
 
@@ -165,25 +185,77 @@ public class FormCart1 extends javax.swing.JPanel {
     private javax.swing.JTable tbtCart;
     // End of variables declaration//GEN-END:variables
 
+        class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText("Remove");
+            return this;
+        }
+    }
+
+    // Custom button editor for the table
+    class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
+        private JButton button;
+        private int productId;
+        private boolean isPushed;
+
+        public ButtonEditor() {
+            button = new JButton();
+            button.setOpaque(true);
+            
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped();
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            
+            productId = (int)value;
+            button.setText("Remove");
+            isPushed = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                removeCartItem(productId);
+            }
+            isPushed = false;
+            return productId;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+    }
+
     private void loadTableCart(List<Cart_detail> list) {
         dtm.setRowCount(0);
         Product_DAO productDao = new Product_DAO();
 
+        int cartId = getCurrentCartID();
         for (Cart_detail cd : list) {
-            Product product = productDao.getProductById(cd.getProductId());
-            String Productname = (product != null) ? product.getName() : "product" + product.getIdProduct();
-            JButton btnRemove = new JButton("Remove");
+            if(cd.getCartID()== cartId){
+               Product product = productDao.getProductById(cd.getProductId());
+            String productName = (product != null) ? product.getName() : "product" + product.getIdProduct();
             int productId = product.getIdProduct();
-            btnRemove.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    removeCartItem(productId);
-                }
-
-            });
             dtm.addRow(new Object[]{
-                Productname, cd.getQuantity(), cd.getPrice(), btnRemove
-            });
+                productName, cd.getQuantity(), cd.getPrice(), productId
+            }); 
+            }
         }
     }
 
@@ -191,14 +263,11 @@ public class FormCart1 extends javax.swing.JPanel {
         Cart_Detail_DAO cdD = new Cart_Detail_DAO();
         boolean success = cdD.delete(productId);
         if (success) {
-            List<Cart_detail> updateCart = (List<Cart_detail>) serviceCartDao.selectById(productId);
+            List<Cart_detail> updateCart = serviceCartDao.selectAll();
             loadTableCart(updateCart);
             updateTotalAmount();
         } else {
-            javax.swing.JOptionPane.showMessageDialog(this,
-                    "Failed to remove item from cart",
-                    "Error",
-                    javax.swing.JOptionPane.ERROR_MESSAGE);
+            Application.showMessage(Notifications.Type.ERROR, "Failed to remove item from cart");
         }
     }
 
@@ -211,21 +280,65 @@ public class FormCart1 extends javax.swing.JPanel {
             if (priceObj instanceof java.math.BigDecimal) {
                 java.math.BigDecimal price = (java.math.BigDecimal) priceObj;
                 total += price.doubleValue() * quantity;
+            } else if (priceObj instanceof String) {
+                String priceStr = (String) priceObj;
+                priceStr = priceStr.replace("$", "").trim();
+                try {
+                    double price = Double.parseDouble(priceStr);
+                    total += price * quantity;
+                } catch (NumberFormatException e) {
+                    System.err.println("Error parsing price: " + priceStr);
+                }
             }
         }
 
-        // Update the total label
         lblMoney.setText("$" + String.format("%.2f", total));
     }
 
+    private int getCurrentCartID() {
+        try {
+            int userId = getCurrentUserID();
+            Cart_DAO cartDao = new Cart_DAO();
+            List<Cart> carts = cartDao.selectAll();
+
+            for (Cart c : carts) {
+                if (c.getCustomerId() == userId && "Active".equalsIgnoreCase(c.getStatus())) {
+                    return c.getId();
+                }
+            }
+
+            Cart newCart = new Cart();
+            newCart.setCustomerId(userId);
+            newCart.setCartID("CART-" + userId + "-" + System.currentTimeMillis());
+            newCart.setStatus("Active");
+            newCart.setCreateDate(now());
+
+            boolean created = cartDao.insert(newCart);
+            if (created) {
+                return -1;
+            }
+
+            carts = cartDao.selectAll();
+            for (Cart c : carts) {
+                if (c.getCustomerId() == userId && "Active".equalsIgnoreCase(c.getStatus())) {
+                    return c.getId();
+                }
+            }
+            return -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public int getCurrentUserID() {
+        return Application.getCurrentUser().getIdCustomer();
+    }
+
     public void refreshCart() {
-        // Get all cart items
         List<Cart_detail> cartItems = serviceCartDao.selectAll();
-        
-        // Load them into the table
         loadTableCart(cartItems);
-        
-        // Update total
         updateTotalAmount();
     }
 }
+

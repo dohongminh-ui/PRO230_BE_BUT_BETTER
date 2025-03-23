@@ -244,9 +244,9 @@ public class ProductDetailComponent extends JPanel {
         Cart_Detail_DAO cartDetailDAO = new Cart_Detail_DAO();
         boolean success = cartDetailDAO.insert(cartItem);
         
-        if (success) {
-            refreshCartForm();
-        } else {
+            if (success) {
+                refreshCartForm();
+            } else {
         }
     }
 

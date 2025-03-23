@@ -137,6 +137,10 @@ public class MainForm extends JLayeredPane {
         menu.setSelectedMenu(index, subIndex);
     }
 
+    public Menu getMenu() {
+        return menu;
+    }
+
     private Menu menu;
     private JPanel panelBody;
     private JButton menuButton;

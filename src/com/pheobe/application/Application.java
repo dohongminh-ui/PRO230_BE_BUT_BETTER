@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import javax.mail.Message;
 import javax.swing.JLayeredPane;
 import net.miginfocom.swing.MigLayout;
 import org.jdesktop.animation.timing.Animator;
@@ -202,10 +203,10 @@ public class Application extends javax.swing.JFrame {
         //         showForm(mainForm);
         //         setSelectedMenu(0, 0);
         //     } else {
-        //         showMessage(Message.MessageType.ERROR, "Email and Password incorrect");
+        //         showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
         //     }
         // } catch (SQLException e) {
-        //     showMessage(Message.MessageType.ERROR, "Error during login");
+        //     showMessage(Notifications.Type.ERROR, "Error during login");
         // }
     }
 

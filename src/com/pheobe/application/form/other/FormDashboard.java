@@ -8,6 +8,7 @@ import com.pheobe.application.component.ProductDetailComponent;
 import com.pheobe.model.Product;
 import com.pheobe.model.Brand;
 import com.pheobe.application.Application;
+import static com.pheobe.application.Application.showMessage;
 import com.pheobe.model.Category;
 import com.pheobe.service.Product_DAO;
 import com.pheobe.service.Brand_DAO;
@@ -160,15 +161,72 @@ public class FormDashboard extends javax.swing.JPanel {
     }
     
     private void performSearch(String searchText) {
-        // Implement your search functionality here
+        List<Product> searchResults = product_DAO.searchProductsByName(searchText);
         System.out.println("Searching for: " + searchText);
-        // Example: search database, update UI with results, etc.
+        
+        productsPanel.removeAll();
+        
+        if(searchResults.isEmpty()){
+            showMessage(Notifications.Type.ERROR, "No results found");
+        } else {
+            for (Product product : searchResults) {
+                Brand brand = brand_DAO.selectById(product.getBrandId());
+                Category category = category_DAO.selectById(product.getCategoryId());
+                
+                if (brand != null && category != null) {
+                    ProductCardComponent productCard = new ProductCardComponent(product, brand, category);
+                    productCard.addAddToCartListener(e -> addToCart(product));
+                    
+                    productCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                        public void mouseClicked(java.awt.event.MouseEvent evt) {
+                            showProductDetail(product, brand, category);
+                        }
+                    });
+                    productsPanel.add(productCard);
+                }
+            }
+        }
+        
+        productsPanel.revalidate();
+        productsPanel.repaint();
     }
     
     private void updateSearchResults(String text) {
-        // Optional: Update search results in real-time as user types
-        // This could show suggestions, filter a list, etc.
-        System.out.println("Text changed: " + text);
+        if (text == null || text.trim().length() < 4) {
+            if (text.isEmpty()) {
+                loadProducts();
+            }
+            return;
+        }
+        List<Product> searchResults = product_DAO.searchProductsByName(text);
+        
+        productsPanel.removeAll();
+        
+        if (searchResults.isEmpty()) {
+            showMessage(Notifications.Type.INFO, "No results found");
+        } else {
+            for (Product product : searchResults) {
+                if ("Active".equals(product.getStatus())) {
+                    Brand brand = brand_DAO.selectById(product.getBrandId());
+                    Category category = category_DAO.selectById(product.getCategoryId());
+                    
+                    if (brand != null && category != null) {
+                        ProductCardComponent productCard = new ProductCardComponent(product, brand, category);
+                        productCard.addAddToCartListener(e -> addToCart(product));
+                        
+                        productCard.addMouseListener(new java.awt.event.MouseAdapter() {
+                            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                                showProductDetail(product, brand, category);
+                            }
+                        });
+                        productsPanel.add(productCard);
+                    }
+                }
+            }
+        }
+        
+        productsPanel.revalidate();
+        productsPanel.repaint();
     }
 
     private void showProductDetail(Product product, Brand brand, Category category) {

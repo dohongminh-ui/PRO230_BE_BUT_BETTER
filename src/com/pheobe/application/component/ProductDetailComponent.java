@@ -1,17 +1,25 @@
 package com.pheobe.application.component;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.pheobe.application.Application;
+import com.pheobe.application.form.other.FormCart1;
 import com.pheobe.model.Product;
 import com.pheobe.model.Brand;
+import com.pheobe.model.Cart;
 import com.pheobe.model.Category;
 import com.pheobe.model.Product_Color;
 import com.pheobe.service.Product_Color_DAO;
 import com.pheobe.application.manager.BreadcrumbManager;
+import com.pheobe.model.Cart_detail;
+import com.pheobe.service.Cart_DAO;
+import com.pheobe.service.Cart_Detail_DAO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static java.time.LocalDateTime.now;
 import java.util.List;
 
 public class ProductDetailComponent extends JPanel {
@@ -67,7 +75,7 @@ public class ProductDetailComponent extends JPanel {
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         imageLabel = new JLabel();
-        imageLabel.setPreferredSize(new Dimension(150, 150));
+        imageLabel.setPreferredSize(new Dimension(300, 300));
         imageLabel.setHorizontalAlignment(JLabel.CENTER);
         leftPanel.add(imageLabel, BorderLayout.NORTH);
         add(leftPanel, BorderLayout.WEST);
@@ -135,6 +143,12 @@ public class ProductDetailComponent extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         
         addToCartButton = new JButton("Add to Cart");
+        addToCartButton.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                addToCart(product, 1);
+            }
+        });
         addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
         addToCartButton.setPreferredSize(new Dimension(120, 30));
         infoPanel.add(addToCartButton, gbc);
@@ -213,5 +227,79 @@ public class ProductDetailComponent extends JPanel {
         BreadcrumbManager breadcrumbManager = BreadcrumbManager.getInstance();
         
         breadcrumbManager.addBreadcrumb(product.getName(), this);
+    }
+
+    private void addToCart(Product product, int quantity) {
+
+        quantity = getQuantity();
+        int cartID = getCurrentCartID();
+        Cart_detail cartItem = new Cart_detail();
+        cartItem.setCartID(cartID); 
+        cartItem.setProductId(product.getIdProduct());
+        cartItem.setPrice(product.getPrice());
+        cartItem.setQuantity(quantity);
+        cartItem.setStatus("Active");
+        cartItem.setCreateDate(java.time.LocalDateTime.now());
+
+        Cart_Detail_DAO cartDetailDAO = new Cart_Detail_DAO();
+        boolean success = cartDetailDAO.insert(cartItem);
+        
+        if (success) {
+            refreshCartForm();
+        } else {
+        }
+    }
+
+    private void refreshCartForm() {
+        for (java.awt.Window window : java.awt.Window.getWindows()) {
+            if (window instanceof javax.swing.JFrame) {
+                javax.swing.JFrame frame = (javax.swing.JFrame) window;
+                for (java.awt.Component comp : frame.getContentPane().getComponents()) {
+                    if (comp instanceof FormCart1) {
+                        FormCart1 cartForm = (FormCart1) comp;
+                        cartForm.refreshCart();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    private int getCurrentCartID(){
+        try{
+            int userId = getCurrentUserID();
+            Cart_DAO cartDao = new Cart_DAO();
+            List<Cart> carts = cartDao.selectAll();
+
+            for (Cart c : carts) {
+                if(c.getCustomerId() == userId && "Active".equalsIgnoreCase(c.getStatus())){
+                    return c.getId();
+                }
+            }
+
+            Cart newCart = new Cart();
+            newCart.setCustomerId(userId);
+            newCart.setCartID("CART-" + userId + "-" + System.currentTimeMillis());
+            newCart.setStatus("Active");
+            newCart.setCreateDate(now());
+
+            boolean created = cartDao.insert(newCart);
+            if(created){
+                return -1;
+            }
+
+            carts = cartDao.selectAll();
+            for (Cart c : carts) {
+                if(c.getCustomerId() == userId && "Active".equalsIgnoreCase(c.getStatus())){
+                    return c.getId();
+                }
+            }
+            return -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    public int getCurrentUserID(){
+        return Application.getCurrentUser().getIdCustomer();
     }
 }

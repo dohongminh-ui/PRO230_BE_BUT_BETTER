@@ -39,6 +39,8 @@ public class FormCart1 extends javax.swing.JPanel {
                 border: 0,0,0,0
                 """);
         dtm = (DefaultTableModel) tbtCart.getModel();
+        refreshCart();
+        
     }
 
     @SuppressWarnings("unchecked")
@@ -214,5 +216,16 @@ public class FormCart1 extends javax.swing.JPanel {
 
         // Update the total label
         lblMoney.setText("$" + String.format("%.2f", total));
+    }
+
+    public void refreshCart() {
+        // Get all cart items
+        List<Cart_detail> cartItems = serviceCartDao.selectAll();
+        
+        // Load them into the table
+        loadTableCart(cartItems);
+        
+        // Update total
+        updateTotalAmount();
     }
 }

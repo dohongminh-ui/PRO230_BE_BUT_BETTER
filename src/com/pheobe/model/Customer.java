@@ -31,6 +31,9 @@ public class Customer {
         this.status = "Active";
         this.accountFailCount = 0;
         this.createDate = LocalDateTime.now();
+        this.sex = "Unknown";
+        this.phoneNumber = "";
+        this.address = "";
     }
 
     public Customer(int idCustomer, String email, String password, String userName) {

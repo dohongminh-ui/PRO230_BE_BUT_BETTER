@@ -17,13 +17,13 @@ import java.util.List;
  * @author Admin
  */
 public class Order_Detail_DAO {
-    private static String getAllOrderDetails = "SELECT * FROM order_detail";
-    private static String getOrderDetailById = "SELECT * FROM order_detail WHERE order_detail_id = ?";
-    private static String getOrderDetailsByOrderId = "SELECT * FROM order_detail WHERE order_id = ?";
-    private static String getOrderDetailsByProductId = "SELECT * FROM order_detail WHERE product_id = ?";
-    private static String insertOrderDetail = "INSERT INTO order_detail (order_id, product_id, price, quantity, status, product_color_id) VALUES (?, ?, ?, ?, ?, ?)";
-    private static String updateOrderDetail = "UPDATE order_detail SET order_id = ?, product_id = ?, price = ?, quantity = ?, status = ?, product_color_id = ? WHERE order_detail_id = ?";
-    private static String deleteOrderDetail = "DELETE FROM order_detail WHERE order_detail_id = ?";
+    private static String getAllOrderDetails = "SELECT * FROM ORDER_DETAIL";
+    private static String getOrderDetailById = "SELECT * FROM ORDER_DETAIL WHERE OrderDetailID = ?";
+    private static String getOrderDetailsByOrderId = "SELECT * FROM ORDER_DETAIL WHERE OrderID = ?";
+    private static String getOrderDetailsByProductId = "SELECT * FROM ORDER_DETAIL WHERE ProductID = ?";
+    private static String insertOrderDetail = "INSERT INTO ORDER_DETAIL (OrderID, ProductID, price, quantity, status, ProductColorId) VALUES (?, ?, ?, ?, ?, ?)";
+    private static String updateOrderDetail = "UPDATE ORDER_DETAIL SET OrderID = ?, ProductID = ?, price = ?, quantity = ?, status = ?, ProductColorId = ? WHERE OrderDetailID = ?";
+    private static String deleteOrderDetail = "DELETE FROM ORDER_DETAIL WHERE OrderDetailID = ?";
     
     Connection con = DBcontext.getConnection();
     
@@ -35,13 +35,13 @@ public class Order_Detail_DAO {
             
             while (rs.next()) {
                 Order_Detail orderDetail = new Order_Detail();
-                orderDetail.setOrderDetailID(rs.getInt("order_detail_id"));
-                orderDetail.setOrderID(rs.getInt("order_id"));
-                orderDetail.setProductID(rs.getInt("product_id"));
+                orderDetail.setOrderDetailID(rs.getInt("OrderDetailID"));
+                orderDetail.setOrderID(rs.getInt("OrderID"));
+                orderDetail.setProductID(rs.getInt("ProductID"));
                 orderDetail.setPrice(rs.getBigDecimal("price"));
                 orderDetail.setQuantity(rs.getInt("quantity"));
                 orderDetail.setStatus(rs.getString("status"));
-                orderDetail.setProductColorId(rs.getObject("product_color_id", Integer.class));
+                orderDetail.setProductColorId(rs.getObject("ProductColorId", Integer.class));
                 orderDetails.add(orderDetail);
             }
         } catch (SQLException e) {
@@ -58,13 +58,13 @@ public class Order_Detail_DAO {
             
             if (rs.next()) {
                 Order_Detail orderDetail = new Order_Detail();
-                orderDetail.setOrderDetailID(rs.getInt("order_detail_id"));
-                orderDetail.setOrderID(rs.getInt("order_id"));
-                orderDetail.setProductID(rs.getInt("product_id"));
+                orderDetail.setOrderDetailID(rs.getInt("OrderDetailID"));
+                orderDetail.setOrderID(rs.getInt("OrderID"));
+                orderDetail.setProductID(rs.getInt("ProductID"));
                 orderDetail.setPrice(rs.getBigDecimal("price"));
                 orderDetail.setQuantity(rs.getInt("quantity"));
                 orderDetail.setStatus(rs.getString("status"));
-                orderDetail.setProductColorId(rs.getObject("product_color_id", Integer.class));
+                orderDetail.setProductColorId(rs.getObject("ProductColorId", Integer.class));
                 return orderDetail;
             }
         } catch (SQLException e) {
@@ -82,13 +82,13 @@ public class Order_Detail_DAO {
             
             while (rs.next()) {
                 Order_Detail orderDetail = new Order_Detail();
-                orderDetail.setOrderDetailID(rs.getInt("order_detail_id"));
-                orderDetail.setOrderID(rs.getInt("order_id"));
-                orderDetail.setProductID(rs.getInt("product_id"));
+                orderDetail.setOrderDetailID(rs.getInt("OrderDetailID"));
+                orderDetail.setOrderID(rs.getInt("OrderID"));
+                orderDetail.setProductID(rs.getInt("ProductID"));
                 orderDetail.setPrice(rs.getBigDecimal("price"));
                 orderDetail.setQuantity(rs.getInt("quantity"));
                 orderDetail.setStatus(rs.getString("status"));
-                orderDetail.setProductColorId(rs.getObject("product_color_id", Integer.class));
+                orderDetail.setProductColorId(rs.getObject("ProductColorId", Integer.class));
                 orderDetails.add(orderDetail);
             }
         } catch (SQLException e) {
@@ -106,13 +106,13 @@ public class Order_Detail_DAO {
             
             while (rs.next()) {
                 Order_Detail orderDetail = new Order_Detail();
-                orderDetail.setOrderDetailID(rs.getInt("order_detail_id"));
-                orderDetail.setOrderID(rs.getInt("order_id"));
-                orderDetail.setProductID(rs.getInt("product_id"));
+                orderDetail.setOrderDetailID(rs.getInt("OrderDetailID"));
+                orderDetail.setOrderID(rs.getInt("OrderID"));
+                orderDetail.setProductID(rs.getInt("ProductID"));
                 orderDetail.setPrice(rs.getBigDecimal("price"));
                 orderDetail.setQuantity(rs.getInt("quantity"));
                 orderDetail.setStatus(rs.getString("status"));
-                orderDetail.setProductColorId(rs.getObject("product_color_id", Integer.class));
+                orderDetail.setProductColorId(rs.getObject("ProductColorId", Integer.class));
                 orderDetails.add(orderDetail);
             }
         } catch (SQLException e) {

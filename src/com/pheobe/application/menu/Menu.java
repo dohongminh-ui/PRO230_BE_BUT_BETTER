@@ -40,7 +40,7 @@ public class Menu extends JPanel {
 
     private final String menuItems[][] = {
         {"Home"},
-        {"Products", "VGA", "CPU", "Mainboard"},
+        {"Products", "CPU", "GPU", "Motherboard"},
         {"Cart"},
         {"Shopping History"},
         {"~OTHER~"},

@@ -48,10 +48,10 @@ public class ServiceUser {
     public void insertUser(Customer user) throws SQLException {
         PreparedStatement p = con.prepareStatement("INSERT into CUSTOMER(UserName, Email, [Password],Name)\n"
                 + "VALUES(?,?,?,?);", PreparedStatement.RETURN_GENERATED_KEYS);
-        p.setString(1, "UNKNOWN");
+        p.setString(1, user.getUserName());
         p.setString(2, user.getEmail());
         p.setString(3, user.getPassword());
-        p.setString(1, user.getUserName());
+        p.setString(4, user.getUserName());
         p.execute();
         ResultSet r = p.getGeneratedKeys();
         while (r.next()) {

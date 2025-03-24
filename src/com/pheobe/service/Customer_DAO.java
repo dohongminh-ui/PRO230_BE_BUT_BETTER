@@ -20,7 +20,7 @@ public class Customer_DAO {
     private String queryToSelectAll = "SELECT * FROM Customer";
     private String queryToSelectByID = "SELECT * FROM Customer WHERE idCustomer = ?";
     private String queryToInsert = "INSERT INTO Customer (name, sex, createDate, email, phoneNumber, address, status, password, userName, logOut, accountFailCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private String queryToUpdate = "UPDATE Customer SET name = ?, sex = ?, email = ?, phoneNumber = ?, address = ?, status = ?, password = ?, userName = ?, logOut = ?, accountFailCount = ? WHERE idCustomer = ?";
+    private String queryToUpdate = "UPDATE Customer SET Name = ?, Email=?, phoneNumber = ?, Address = ?  WHERE idCustomer = ?";
     private String queryToDelete = "DELETE FROM Customer WHERE idCustomer = ?";
     
     private Connection con = DBcontext.getConnection();
@@ -113,17 +113,10 @@ public class Customer_DAO {
         try {
             PreparedStatement pre = con.prepareStatement(queryToUpdate);
             pre.setString(1, customer.getName());
-            pre.setString(2, customer.getSex());
-            pre.setString(3, customer.getEmail());
-            pre.setString(4, customer.getPhoneNumber());
-            pre.setString(5, customer.getAddress());
-            pre.setString(6, customer.getStatus());
-            pre.setString(7, customer.getPassword());
-            pre.setString(8, customer.getUserName());
-            pre.setObject(9, customer.getLogOut());
-            pre.setInt(10, customer.getAccountFailCount());
-            pre.setInt(11, customer.getIdCustomer());
-            
+            pre.setString(2, customer.getEmail());
+            pre.setString(3, customer.getPhoneNumber());
+            pre.setString(4, customer.getAddress());
+            pre.setInt(5, customer.getIdCustomer());
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;

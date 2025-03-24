@@ -18,13 +18,13 @@ import java.util.List;
  */
 
 public class Order_DAO {
-    private static String getAllOrders = "SELECT * FROM orders";
-    private static String getOrderById = "SELECT * FROM orders WHERE order_id = ?";
-    private static String getOrdersByCustomerId = "SELECT * FROM orders WHERE customer_id = ?";
-    private static String getOrdersByStatus = "SELECT * FROM orders WHERE status = ?";
-    private static String insertOrder = "INSERT INTO orders (customer_id, create_date, shipping_address, shipping_phone_number, status, description) VALUES (?, ?, ?, ?, ?, ?)";
-    private static String updateOrder = "UPDATE orders SET customer_id = ?, update_date = ?, shipping_address = ?, shipping_phone_number = ?, status = ?, description = ?, reason_for_change = ?, history_log_change = ? WHERE order_id = ?";
-    private static String deleteOrder = "DELETE FROM orders WHERE order_id = ?";
+    private static String getAllOrders = "SELECT * FROM [ORDER]";
+    private static String getOrderById = "SELECT * FROM [ORDER] WHERE OrderID = ?";
+    private static String getOrdersByCustomerId = "SELECT * FROM [ORDER] WHERE CustomerID = ?";
+    private static String getOrdersByStatus = "SELECT * FROM [ORDER] WHERE status = ?";
+    private static String insertOrder = "INSERT INTO [ORDER] (CustomerID, ShippingAddress, ShippingPhoneNumber, CreateDate, Status) VALUES (?, ?, ?, ?, ?)";
+    private static String updateOrder = "UPDATE ORDER SET CustomerID = ?, UpdateDate = ?, ShippingAddress = ?, ShippingPhoneNumber = ?, status = ?, Description = ?, ReasonForChange = ?, HistoryLogChange = ? WHERE OrderID = ?";
+    private static String deleteOrder = "DELETE FROM [ORDER] WHERE OrderID = ?";
     
     Connection con = DBcontext.getConnection();
     
@@ -36,16 +36,16 @@ public class Order_DAO {
             
             while (rs.next()) {
                 Order order = new Order();
-                order.setOrderID(rs.getInt("order_id"));
-                order.setCustomerID(rs.getInt("customer_id"));
-                order.setCreateDate(rs.getObject("create_date", LocalDateTime.class));
-                order.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
-                order.setShippingAddress(rs.getString("shipping_address"));
-                order.setShippingPhoneNumber(rs.getString("shipping_phone_number"));
-                order.setStatus(rs.getString("status"));
-                order.setDescription(rs.getString("description"));
-                order.setReasonForChange(rs.getString("reason_for_change"));
-                order.setHistoryLogChange(rs.getString("history_log_change"));
+                order.setOrderID(rs.getInt("OrderID"));
+                order.setCustomerID(rs.getInt("CustomerID"));
+                order.setCreateDate(rs.getObject("CreateDate", LocalDateTime.class));
+                order.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
+                order.setShippingAddress(rs.getString("ShippingAddress"));
+                order.setShippingPhoneNumber(rs.getString("ShippingPhoneNumber"));
+                order.setStatus(rs.getString("Status"));
+                order.setDescription(rs.getString("Description"));
+                order.setReasonForChange(rs.getString("ReasonForChange"));
+                order.setHistoryLogChange(rs.getString("HistoryLogChange"));
                 orders.add(order);
             }
         } catch (SQLException e) {
@@ -62,16 +62,16 @@ public class Order_DAO {
             
             if (rs.next()) {
                 Order order = new Order();
-                order.setOrderID(rs.getInt("order_id"));
-                order.setCustomerID(rs.getInt("customer_id"));
-                order.setCreateDate(rs.getObject("create_date", LocalDateTime.class));
-                order.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
-                order.setShippingAddress(rs.getString("shipping_address"));
-                order.setShippingPhoneNumber(rs.getString("shipping_phone_number"));
+                order.setOrderID(rs.getInt("OrderID"));
+                order.setCustomerID(rs.getInt("CustomerID"));
+                order.setCreateDate(rs.getObject("CreateDate", LocalDateTime.class));
+                order.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
+                order.setShippingAddress(rs.getString("ShippingAddress"));
+                order.setShippingPhoneNumber(rs.getString("ShippingPhoneNumber"));
                 order.setStatus(rs.getString("status"));
                 order.setDescription(rs.getString("description"));
-                order.setReasonForChange(rs.getString("reason_for_change"));
-                order.setHistoryLogChange(rs.getString("history_log_change"));
+                order.setReasonForChange(rs.getString("ReasonForChange"));
+                order.setHistoryLogChange(rs.getString("HistoryLogChange"));
                 return order;
             }
         } catch (SQLException e) {
@@ -89,16 +89,16 @@ public class Order_DAO {
             
             while (rs.next()) {
                 Order order = new Order();
-                order.setOrderID(rs.getInt("order_id"));
-                order.setCustomerID(rs.getInt("customer_id"));
-                order.setCreateDate(rs.getObject("create_date", LocalDateTime.class));
-                order.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
-                order.setShippingAddress(rs.getString("shipping_address"));
-                order.setShippingPhoneNumber(rs.getString("shipping_phone_number"));
-                order.setStatus(rs.getString("status"));
-                order.setDescription(rs.getString("description"));
-                order.setReasonForChange(rs.getString("reason_for_change"));
-                order.setHistoryLogChange(rs.getString("history_log_change"));
+                order.setOrderID(rs.getInt("OrderID"));
+                order.setCustomerID(rs.getInt("CustomerID"));
+                order.setCreateDate(rs.getObject("CreateDate", LocalDateTime.class));
+                order.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
+                order.setShippingAddress(rs.getString("ShippingAddress"));
+                order.setShippingPhoneNumber(rs.getString("ShippingPhoneNumber"));
+                order.setStatus(rs.getString("Status"));
+                order.setDescription(rs.getString("Description"));
+                order.setReasonForChange(rs.getString("ReasonForChange"));
+                order.setHistoryLogChange(rs.getString("HistoryLogChange"));
                 orders.add(order);
             }
         } catch (SQLException e) {
@@ -116,16 +116,16 @@ public class Order_DAO {
             
             while (rs.next()) {
                 Order order = new Order();
-                order.setOrderID(rs.getInt("order_id"));
-                order.setCustomerID(rs.getInt("customer_id"));
-                order.setCreateDate(rs.getObject("create_date", LocalDateTime.class));
-                order.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
-                order.setShippingAddress(rs.getString("shipping_address"));
-                order.setShippingPhoneNumber(rs.getString("shipping_phone_number"));
-                order.setStatus(rs.getString("status"));
-                order.setDescription(rs.getString("description"));
-                order.setReasonForChange(rs.getString("reason_for_change"));
-                order.setHistoryLogChange(rs.getString("history_log_change"));
+                order.setOrderID(rs.getInt("OrderID"));
+                order.setCustomerID(rs.getInt("CustomerID"));
+                order.setCreateDate(rs.getObject("CreateDate", LocalDateTime.class));
+                order.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
+                order.setShippingAddress(rs.getString("ShippingAddress"));
+                order.setShippingPhoneNumber(rs.getString("ShippingPhoneNumber"));
+                order.setStatus(rs.getString("Status"));
+                order.setDescription(rs.getString("Description"));
+                order.setReasonForChange(rs.getString("ReasonForChange"));
+                order.setHistoryLogChange(rs.getString("HistoryLogChange"));
                 orders.add(order);
             }
         } catch (SQLException e) {
@@ -138,12 +138,10 @@ public class Order_DAO {
         try {
             PreparedStatement statement = con.prepareStatement(insertOrder);
             statement.setInt(1, order.getCustomerID());
-            statement.setObject(2, order.getCreateDate());
-            statement.setString(3, order.getShippingAddress());
-            statement.setString(4, order.getShippingPhoneNumber());
+            statement.setString(2, order.getShippingAddress());
+            statement.setString(3, order.getShippingPhoneNumber());
+            statement.setObject(4, order.getCreateDate());
             statement.setString(5, order.getStatus());
-            statement.setString(6, order.getDescription());
-            
             int row = statement.executeUpdate();
             return row > 0;
         } catch (SQLException e) {

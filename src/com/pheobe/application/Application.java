@@ -169,46 +169,49 @@ public class Application extends javax.swing.JFrame {
                 System.out.println("Register successful");
             }
         } catch (SQLException e) {
-            showMessage(Notifications.Type.ERROR, "Error during registration");
+            e.printStackTrace();
+            showMessage(Notifications.Type.ERROR, "Error during registration: " + e.getMessage());
         }
     }
 
     private void authenticateUser() {
         
+        // try {
+        //     Customer testUser = new Customer();
+        //     testUser.setUserName("mmb");
+        //     testUser.setEmail("test@example.com");
+        //     testUser.setPassword("password");
+            
+        //     currentUser = testUser;
+            
+        //     login();
+        //     showForm(mainForm);
+        //     setSelectedMenu(0, 0);
+            
+        //     showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+            
+        // } catch (Exception e) {
+        //     showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
+        //     e.printStackTrace();
+        // }
+        
+        
+        Customer data = loginAndRegister.getDataLogin();
         try {
-            Customer testUser = new Customer();
-            testUser.setUserName("mmb");
-            testUser.setEmail("test@example.com");
-            testUser.setPassword("password");
-            
-            currentUser = testUser;
-            
-            login();
-            showForm(mainForm);
-            setSelectedMenu(0, 0);
+            Customer user = service.login(data);
+            if (user != null) {
+                currentUser = user;
+                login();
+                showForm(mainForm);
+                setSelectedMenu(0, 0);
             
             showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
-            
-        } catch (Exception e) {
-            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
-            e.printStackTrace();
+            } else {
+                showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+            }
+        } catch (SQLException e) {
+            showMessage(Notifications.Type.ERROR, "Error during login");
         }
-        
-        
-      //   Customer data = loginAndRegister.getDataLogin();
-      //   try {
-      //       Customer user = service.login(data);
-      //       if (user != null) {
-      //           currentUser = user;
-      //           login();
-      //           showForm(mainForm);
-      //           setSelectedMenu(0, 0);
-      //       } else {
-      //           showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
-      //       }
-      //   } catch (SQLException e) {
-      //       showMessage(Notifications.Type.ERROR, "Error during login");
-      //   }
     }
 
     public static void showMessage(Notifications.Type type, String message) {

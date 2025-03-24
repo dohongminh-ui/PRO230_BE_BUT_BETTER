@@ -1,6 +1,11 @@
 package com.pheobe.application.form.other;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.pheobe.application.Application;
+import com.pheobe.model.Customer;
+import com.pheobe.service.Customer_DAO;
+import javax.swing.JOptionPane;
+
 
 /**
  *
@@ -8,12 +13,18 @@ import com.formdev.flatlaf.FlatClientProperties;
  */
 public class FormCustomerInfromation extends javax.swing.JPanel {
 
+    private Customer_DAO serviceCustomer = new Customer_DAO();
+    
     public FormCustomerInfromation() {
         initComponents();
         panelInformation.setAlignmentY(CENTER_ALIGNMENT);
         lblUsername.putClientProperty(FlatClientProperties.STYLE, ""
                 + "font:$h1.font");
+        loadCustomerData();
+        
     }
+
+    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -54,10 +65,15 @@ public class FormCustomerInfromation extends javax.swing.JPanel {
         lblNumber.setText("Phone number");
 
         lblLocation.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        lblLocation.setText("Location");
+        lblLocation.setText("Address");
 
         jButton1.setBackground(new java.awt.Color(255, 179, 72));
         jButton1.setText("Save Change");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panelImageLayout = new javax.swing.GroupLayout(panelImage);
         panelImage.setLayout(panelImageLayout);
@@ -180,6 +196,56 @@ public class FormCustomerInfromation extends javax.swing.JPanel {
         add(panelInformation, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+        int choice = JOptionPane.showConfirmDialog(this, 
+                "Are you sure you want to update your information?", 
+                "Confirm Update", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.QUESTION_MESSAGE);
+        
+        if(choice == JOptionPane.YES_OPTION) {
+            try {
+                Customer customer = Application.getCurrentUser();
+                
+                customer.setName(txtname.getText());
+                customer.setEmail(txtEmail.getText());
+                customer.setPhoneNumber(txtNumber.getText());
+                customer.setAddress(txtLocation.getText());
+                
+                if (customer.getName().isEmpty() || customer.getEmail().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, 
+                            "Name and Email cannot be empty", 
+                            "Validation Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                boolean success = serviceCustomer.update(customer);
+                
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                            "Your information has been updated successfully", 
+                            "Update Successful", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    
+                    lblUsername.setText(customer.getName());
+                    lblUserEmail.setText(customer.getEmail());
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                            "Failed to update your information", 
+                            "Update Failed", 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                        "Error: " + e.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JSeparator jSeparator1;
@@ -199,4 +265,22 @@ public class FormCustomerInfromation extends javax.swing.JPanel {
     private javax.swing.JTextField txtNumber;
     private javax.swing.JTextField txtname;
     // End of variables declaration//GEN-END:variables
+    
+    private void loadCustomerData() {
+        Customer customer = serviceCustomer.selectById(Application.getCurrentUser().getIdCustomer());
+        txtname.setText(customer.getName());
+        txtEmail.setText(customer.getEmail());
+        txtNumber.setText(customer.getPhoneNumber());
+        txtLocation.setText(customer.getAddress());
+        
+        lblUsername.setText(customer.getName());
+        lblUserEmail.setText(customer.getEmail());
+
+        System.err.println(customer.getName());
+        System.err.println(customer.getEmail());
+        System.err.println(customer.getPhoneNumber());
+        System.err.println(customer.getAddress());
+        System.err.println(customer.getIdCustomer());
+    }
+    
 }

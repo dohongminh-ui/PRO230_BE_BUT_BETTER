@@ -78,11 +78,11 @@ public class MainForm extends JLayeredPane {
                 Application.showForm(new FormDashboard());
             } else if (index == 1) {
                if (subIndex == 1) {
-                Application.showForm(new FormDashboard());
+                Application.showForm(new FormDashboard(2));
                } else if (subIndex == 2) {
-                Application.showForm(new FormDashboard());
+                Application.showForm(new FormDashboard(3));
                } else if (subIndex == 3) {
-                Application.showForm(new FormDashboard());
+                Application.showForm(new FormDashboard(4));
                }
             } else if (index == 2) {
                 Application.showForm(new FormCart1());

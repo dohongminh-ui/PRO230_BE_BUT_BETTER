@@ -33,8 +33,13 @@ public class FormDashboard extends javax.swing.JPanel {
     private Brand_DAO brand_DAO;
     private Category_DAO category_DAO;
     private BreadcrumbManager breadcrumbManager;
+    private int filterCategory = 0;
 
     public FormDashboard() {
+        this(0);
+    }
+
+    public FormDashboard(int categoryFilter) {
         initComponents();
         lb.putClientProperty(FlatClientProperties.STYLE, "" + "font:$h1.font");
         
@@ -42,9 +47,19 @@ public class FormDashboard extends javax.swing.JPanel {
         brand_DAO = new Brand_DAO();
         category_DAO = new Category_DAO();
         
+        this.filterCategory = categoryFilter;
+        
         breadcrumbManager = BreadcrumbManager.getInstance();
         breadcrumbManager.clear();
         breadcrumbManager.addBreadcrumb("Home", this);
+
+        if (filterCategory > 0) {
+            Category category = category_DAO.selectById(filterCategory);
+            if (category != null) {
+                lb.setText("Products - " + category.getName());
+                breadcrumbManager.addBreadcrumb(category.getName(), this);
+            }
+        }
         
         breadcrumbManager.getBreadcrumb().setBreadcrumbListener((item, index) -> {
             if (index == -1) {
@@ -113,7 +128,11 @@ public class FormDashboard extends javax.swing.JPanel {
         SwingWorker<List<Product>, Void> worker = new SwingWorker<List<Product>, Void>() {
             @Override
             protected List<Product> doInBackground() throws Exception {
-                return product_DAO.getAllProducts();
+                if (filterCategory > 0) {
+                    return product_DAO.getProductsByCategoryId(filterCategory);
+                } else {
+                    return product_DAO.getAllProducts();
+                }
             }
 
             @Override
@@ -135,6 +154,9 @@ public class FormDashboard extends javax.swing.JPanel {
 
         for (Product product : products) {
             if ("Active".equals(product.getStatus())) {
+                if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
+                    continue;
+                }
                 Brand brand = brand_DAO.selectById(product.getBrandId());
                 Category category = category_DAO.selectById(product.getCategoryId());
 
@@ -170,6 +192,9 @@ public class FormDashboard extends javax.swing.JPanel {
             showMessage(Notifications.Type.ERROR, "No results found");
         } else {
             for (Product product : searchResults) {
+                if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
+                    continue;
+                }
                 Brand brand = brand_DAO.selectById(product.getBrandId());
                 Category category = category_DAO.selectById(product.getCategoryId());
                 
@@ -207,6 +232,9 @@ public class FormDashboard extends javax.swing.JPanel {
         } else {
             for (Product product : searchResults) {
                 if ("Active".equals(product.getStatus())) {
+                    if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
+                        continue;
+                    }
                     Brand brand = brand_DAO.selectById(product.getBrandId());
                     Category category = category_DAO.selectById(product.getCategoryId());
                     

@@ -70,6 +70,7 @@ public class PanelLoginAndRegister extends javax.swing.JLayeredPane {
                 user.setUserName(userName);
                 user.setEmail(email);
                 user.setPassword(password);
+                user.setName(userName);
             }
         });
     }

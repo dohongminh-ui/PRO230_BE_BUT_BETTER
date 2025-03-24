@@ -8,10 +8,21 @@ import com.pheobe.service.Cart_DAO;
 import com.pheobe.service.Cart_Detail_DAO;
 import com.pheobe.service.Product_DAO;
 import com.pheobe.application.Application;
+import com.pheobe.model.Customer;
+import com.pheobe.model.Order;
+import com.pheobe.model.Order_Detail;
+import com.pheobe.model.Payment;
+import com.pheobe.service.Customer_DAO;
+import com.pheobe.service.Order_DAO;
+import com.pheobe.service.Order_Detail_DAO;
+import com.pheobe.service.Payment_DAO;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import static java.time.LocalDateTime.now;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
@@ -31,6 +42,7 @@ public class FormCart1 extends javax.swing.JPanel {
     private DefaultTableModel dtm = new DefaultTableModel();
     private Cart_DAO serviceCart = new Cart_DAO();
     private Cart_Detail_DAO serviceCartDao = new Cart_Detail_DAO();
+    private Customer_DAO serviceCustomer = new Customer_DAO();
 
     public FormCart1() {
         initComponents();
@@ -103,13 +115,13 @@ public class FormCart1 extends javax.swing.JPanel {
 
         tbtCart.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
             },
             new String [] {
-                "", "Product", "Quantity", "Price", "Action"
+                "Product", "Quantity", "Price", "Action"
             }
         ));
         jScrollPane1.setViewportView(tbtCart);
@@ -168,9 +180,137 @@ public class FormCart1 extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnCheckOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCheckOutActionPerformed
-        
-    }//GEN-LAST:event_btnCheckOutActionPerformed
+    private void btnCheckOutActionPerformed(java.awt.event.ActionEvent evt) {
+        if (dtm.getRowCount() == 0) {
+            Application.showMessage(Notifications.Type.WARNING, "Your cart is empty!");
+            return;
+        }
+
+        try {
+            int cartId = getCurrentCartID();
+            Customer customer = serviceCustomer.selectById(Application.getCurrentUser().getIdCustomer());
+            if (cartId == -1) {
+                Application.showMessage(Notifications.Type.ERROR, "Failed to get cart information");
+                return;
+            }
+
+            int customerId = getCurrentUserID();
+            Order order = new Order();
+            order.setCustomerID(customerId);
+            order.setShippingAddress(customer.getAddress());
+            order.setShippingPhoneNumber(customer.getPhoneNumber());
+            order.setCreateDate(LocalDateTime.now());
+            order.setStatus("Completed");
+
+            Order_DAO orderDao = new Order_DAO();
+            boolean orderCreated = orderDao.insertOrder(order);
+
+            if (!orderCreated) {
+                Application.showMessage(Notifications.Type.ERROR, "Failed to create order");
+                return;
+            }
+
+            List<Order> customerOrders = orderDao.getOrdersByCustomerId(customerId);
+            int newOrderId = -1;
+            if (!customerOrders.isEmpty()) {
+                customerOrders.sort((o1, o2) -> o2.getCreateDate().compareTo(o1.getCreateDate()));
+                newOrderId = customerOrders.get(0).getOrderID();
+            }
+
+            if (newOrderId == -1) {
+                Application.showMessage(Notifications.Type.ERROR, "Failed to retrieve order information");
+                return;
+            }
+
+            List<Cart_detail> allCartDetails = serviceCartDao.selectAll();
+            List<Cart_detail> cartDetails = new ArrayList<>();
+
+            for (Cart_detail detail : allCartDetails) {
+                if (detail.getCartID() == cartId && "Active".equals(detail.getStatus())) {
+                    cartDetails.add(detail);
+                }
+            }
+
+            if (cartDetails.isEmpty()) {
+                for (int i = 0; i < dtm.getRowCount(); i++) {
+                    String productName = (String) dtm.getValueAt(i, 0);
+                    int quantity = (int) dtm.getValueAt(i, 1);
+                    Object priceObj = dtm.getValueAt(i, 2);
+                    int productId = (int) dtm.getValueAt(i, 3);
+
+                    Cart_detail cd = new Cart_detail();
+                    cd.setCartID(cartId);
+                    cd.setProductId(productId);
+                    cd.setQuantity(quantity);
+
+                    if (priceObj instanceof BigDecimal) {
+                        cd.setPrice((BigDecimal) priceObj);
+                    } else {
+                        String priceStr = priceObj.toString().replace("$", "").trim();
+                        cd.setPrice(new BigDecimal(priceStr));
+                    }
+
+                    cartDetails.add(cd);
+                }
+            }
+
+            Order_Detail_DAO orderDetailDao = new Order_Detail_DAO();
+            Product_DAO productDao = new Product_DAO();
+
+            BigDecimal totalAmount = BigDecimal.ZERO;
+
+            for (Cart_detail cartDetail : cartDetails) {
+                Order_Detail orderDetail = new Order_Detail();
+                orderDetail.setOrderID(newOrderId);
+                orderDetail.setProductID(cartDetail.getProductId());
+                orderDetail.setPrice(cartDetail.getPrice());
+                orderDetail.setQuantity(cartDetail.getQuantity());
+                orderDetail.setStatus("Completed");
+
+                orderDetailDao.insertOrderDetail(orderDetail);
+
+                totalAmount = totalAmount.add(cartDetail.getPrice().multiply(new BigDecimal(cartDetail.getQuantity())));
+
+                Product product = productDao.getProductById(cartDetail.getProductId());
+                if (product != null) {
+                    product.setStock(product.getStock() - cartDetail.getQuantity());
+                    productDao.updateProduct(product.getIdProduct(), product);
+                }
+            }
+
+            Payment payment = new Payment();
+            payment.setOrderID(newOrderId);
+            payment.setCustomerID(customerId);
+            payment.setPaymentType("Direct");
+            payment.setTotalMoney(totalAmount);
+            payment.setPaymentDate(LocalDateTime.now());
+            payment.setStatus("Completed");
+
+            Payment_DAO paymentDao = new Payment_DAO();
+            paymentDao.addPayment(payment);
+
+            for (Cart_detail cartDetail : cartDetails) {
+                cartDetail.setStatus("Ordered");
+                serviceCartDao.update(cartDetail);
+            }
+
+            Cart_DAO cartDao = new Cart_DAO();
+            Cart cart = cartDao.selectById(cartId);
+            if (cart != null) {
+                cart.setStatus("Completed");
+                cartDao.update(cart);
+            }
+
+            Application.showMessage(Notifications.Type.SUCCESS, "Order placed successfully!");
+
+            refreshCart();
+
+            Application.showForm(new FormHistory());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Application.showMessage(Notifications.Type.ERROR, "Error processing order: " + e.getMessage());
+        }
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -185,7 +325,8 @@ public class FormCart1 extends javax.swing.JPanel {
     private javax.swing.JTable tbtCart;
     // End of variables declaration//GEN-END:variables
 
-        class ButtonRenderer extends JButton implements TableCellRenderer {
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+
         public ButtonRenderer() {
             setOpaque(true);
         }
@@ -200,6 +341,7 @@ public class FormCart1 extends javax.swing.JPanel {
 
     // Custom button editor for the table
     class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
+
         private JButton button;
         private int productId;
         private boolean isPushed;
@@ -207,7 +349,7 @@ public class FormCart1 extends javax.swing.JPanel {
         public ButtonEditor() {
             button = new JButton();
             button.setOpaque(true);
-            
+
             button.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -219,8 +361,8 @@ public class FormCart1 extends javax.swing.JPanel {
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value,
                 boolean isSelected, int row, int column) {
-            
-            productId = (int)value;
+
+            productId = (int) value;
             button.setText("Remove");
             isPushed = true;
             return button;
@@ -248,13 +390,13 @@ public class FormCart1 extends javax.swing.JPanel {
 
         int cartId = getCurrentCartID();
         for (Cart_detail cd : list) {
-            if(cd.getCartID()== cartId){
-               Product product = productDao.getProductById(cd.getProductId());
-            String productName = (product != null) ? product.getName() : "product" + product.getIdProduct();
-            int productId = product.getIdProduct();
-            dtm.addRow(new Object[]{
-                productName, cd.getQuantity(), cd.getPrice(), productId
-            }); 
+            if (cd.getCartID() == cartId) {
+                Product product = productDao.getProductById(cd.getProductId());
+                String productName = (product != null) ? product.getName() : "product" + product.getIdProduct();
+                int productId = product.getIdProduct();
+                dtm.addRow(new Object[]{
+                    productName, cd.getQuantity(), cd.getPrice(), productId
+                });
             }
         }
     }
@@ -341,4 +483,3 @@ public class FormCart1 extends javax.swing.JPanel {
         updateTotalAmount();
     }
 }
-

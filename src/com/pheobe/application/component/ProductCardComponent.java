@@ -20,6 +20,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.Composite;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.util.List;
 
 public class ProductCardComponent extends JPanel {
@@ -83,13 +86,17 @@ public class ProductCardComponent extends JPanel {
         brandLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
         brandLabel.setOpaque(false);
 
-        stockLabel = new JLabel("In Stock: " + product.getStock());
+        boolean isOutOfStock = product.getStock() <= 0;
+        
+        if (isOutOfStock) {
+            stockLabel = new JLabel("OUT OF STOCK");
+            stockLabel.setForeground(Color.RED);
+            stockLabel.setFont(stockLabel.getFont().deriveFont(Font.BOLD));
+        } else {
+            stockLabel = new JLabel("In Stock: " + product.getStock());
+        }
         stockLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
         stockLabel.setOpaque(false);
-
-        addToCart = new JButton("Add to cart");
-        addToCart.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
-        addToCart.setAlignmentX(JButton.LEFT_ALIGNMENT);
 
         infoPanel.add(nameLabel);
         infoPanel.add(Box.createVerticalStrut(5));
@@ -98,8 +105,14 @@ public class ProductCardComponent extends JPanel {
         infoPanel.add(brandLabel);
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(stockLabel);
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(addToCart);
+        
+        if (!isOutOfStock) {
+            infoPanel.add(Box.createVerticalStrut(10));
+            addToCart = new JButton("Add to cart");
+            addToCart.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
+            addToCart.setAlignmentX(JButton.LEFT_ALIGNMENT);
+            infoPanel.add(addToCart);
+        }
 
         add(imagePanel, BorderLayout.NORTH);
         add(infoPanel, BorderLayout.CENTER);
@@ -119,12 +132,12 @@ public class ProductCardComponent extends JPanel {
                     if (imageData != null) {
                         ImageIcon icon = new ImageIcon(imageData);
                         Image fatImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                        return createRoundedImage(new ImageIcon(fatImage), 10);
+                        return createRoundedImage(new ImageIcon(fatImage), 15);
                     }
                 }
 
                 ImageIcon defaultIcon = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/logo.png"));
-                return createRoundedImage(defaultIcon, 10);
+                return createRoundedImage(defaultIcon, 15);
             }
 
             @Override
@@ -224,7 +237,9 @@ public class ProductCardComponent extends JPanel {
     }
 
     public void addAddToCartListener(ActionListener listener) {
-        addToCart.addActionListener(listener);
+        if (addToCart != null) {
+            addToCart.addActionListener(listener);
+        }
     }
 
     public void addViewDetailsListener(ActionListener listener) {
@@ -253,12 +268,21 @@ public class ProductCardComponent extends JPanel {
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = output.createGraphics();
         
+        g2.setComposite(AlphaComposite.Src);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(0, 0, 0, 0));
+        g2.fillRect(0, 0, width, height);
         
         RoundRectangle2D roundedRect = new RoundRectangle2D.Float(0, 0, width, height, cornerRadius, cornerRadius);
         g2.setClip(roundedRect);
-        
         g2.drawImage(icon.getImage(), 0, 0, null);
+        
+        g2.setClip(null);
+        g2.setComposite(AlphaComposite.SrcAtop);
+        g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(1));
+        g2.draw(roundedRect);
+        
         g2.dispose();
         
         return new ImageIcon(output);

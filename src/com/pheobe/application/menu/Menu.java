@@ -41,13 +41,14 @@ public class Menu extends JPanel {
     private final String menuItems[][] = {
         {"Home"},
         {"Products", "CPU", "GPU", "Motherboard"},
+        {"Brands", "Intel", "AMD", "NVIDIA"},
         {"Cart"},
         {"Shopping History"},
         {"~OTHER~"},
         {"User", "Personal Information", "Logout"}
     };
 
-    private static final int USER_MENU_INDEX = 4;
+    private static final int USER_MENU_INDEX = 5;
 
     public boolean isMenuFull() {
         return menuFull;

@@ -15,6 +15,10 @@ import com.pheobe.service.Brand_DAO;
 import com.pheobe.service.Category_DAO;
 import raven.toast.Notifications;
 import com.pheobe.application.manager.BreadcrumbManager;
+import com.pheobe.model.Cart;
+import com.pheobe.service.Cart_DAO;
+import com.pheobe.model.Cart_detail;
+import com.pheobe.service.Cart_Detail_DAO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -179,7 +183,84 @@ public class FormDashboard extends javax.swing.JPanel {
     }
 
     private void addToCart(Product product) {
-        System.out.println("Adding product to cart: " + product.getName());
+        try {
+            if (Application.getCurrentUser() == null) {
+                showMessage(Notifications.Type.WARNING, "Please login to add items to cart");
+                return;
+            }
+
+            int customerId = Application.getCurrentUser().getIdCustomer();
+            
+            Cart_DAO cartDao = new Cart_DAO();
+            List<Cart> carts = cartDao.selectAll();
+
+            Cart activeCart = null;
+            for (Cart c : carts) {
+                if (c.getCustomerId() == customerId && "Active".equalsIgnoreCase(c.getStatus())) {
+                    activeCart = c;
+                    break;
+                }
+            }
+
+            if (activeCart == null) {
+                Cart newCart = new Cart();
+                newCart.setCustomerId(customerId);
+                newCart.setCartID("CART-" + customerId + "-" + System.currentTimeMillis());
+                newCart.setStatus("Active");
+                newCart.setCreateDate(java.time.LocalDateTime.now());
+
+                boolean created = cartDao.insert(newCart);
+                if (!created) {
+                    showMessage(Notifications.Type.ERROR, "Failed to create cart");
+                    return;
+                }
+
+                carts = cartDao.selectAll();
+                for (Cart c : carts) {
+                    if (c.getCustomerId() == customerId && "Active".equalsIgnoreCase(c.getStatus())) {
+                        activeCart = c;
+                        break;
+                    }
+                }
+
+                if (activeCart == null) {
+                    showMessage(Notifications.Type.ERROR, "Failed to retrieve cart");
+                    return;
+                }
+            }
+
+            Cart_Detail_DAO cartDetailDao = new Cart_Detail_DAO();
+            List<Cart_detail> cartDetails = cartDetailDao.selectAll();
+
+            boolean productFound = false;
+            for (Cart_detail detail : cartDetails) {
+                if (detail.getCartID() == activeCart.getId() && 
+                    detail.getProductId() == product.getIdProduct() && 
+                    "Active".equals(detail.getStatus())) {
+                    
+                    detail.setQuantity(detail.getQuantity() + 1);
+                    cartDetailDao.update(detail);
+                    productFound = true;
+                    break;
+                }
+            }
+
+            if (!productFound) {
+                Cart_detail newDetail = new Cart_detail();
+                newDetail.setCartID(activeCart.getId());
+                newDetail.setProductId(product.getIdProduct());
+                newDetail.setQuantity(1);
+                newDetail.setPrice(product.getPrice());
+                newDetail.setStatus("Active");
+                
+                cartDetailDao.insert(newDetail);
+            }
+
+            showMessage(Notifications.Type.SUCCESS, "Product added to cart");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showMessage(Notifications.Type.ERROR, "Error adding product to cart: " + e.getMessage());
+        }
     }
     
     private void performSearch(String searchText) {

@@ -194,6 +194,22 @@ public class FormCart1 extends javax.swing.JPanel {
                 return;
             }
 
+            boolean addressMissing = customer.getAddress() == null || customer.getAddress().trim().isEmpty();
+            boolean phoneMissing = customer.getPhoneNumber() == null || customer.getPhoneNumber().trim().isEmpty();
+            
+            if (addressMissing || phoneMissing) {
+                String message;
+                if (addressMissing && phoneMissing) {
+                    message = "Please update your address and phone number in Personal Information before checkout!";
+                } else if (addressMissing) {
+                    message = "Please update your address in Personal Information before checkout!";
+                } else {
+                    message = "Please update your phone number in Personal Information before checkout!";
+                }
+                Application.showMessage(Notifications.Type.WARNING, message);
+                return;
+            }
+
             int customerId = getCurrentUserID();
             Order order = new Order();
             order.setCustomerID(customerId);
@@ -339,7 +355,6 @@ public class FormCart1 extends javax.swing.JPanel {
         }
     }
 
-    // Custom button editor for the table
     class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
 
         private JButton button;
@@ -393,9 +408,11 @@ public class FormCart1 extends javax.swing.JPanel {
             if (cd.getCartID() == cartId) {
                 Product product = productDao.getProductById(cd.getProductId());
                 String productName = (product != null) ? product.getName() : "product" + product.getIdProduct();
+                String formattedPrice = "$" + cd.getPrice().toString();
                 int productId = product.getIdProduct();
+
                 dtm.addRow(new Object[]{
-                    productName, cd.getQuantity(), cd.getPrice(), productId
+                    productName, cd.getQuantity(), formattedPrice, productId
                 });
             }
         }

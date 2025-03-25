@@ -13,6 +13,7 @@ import com.pheobe.application.manager.BreadcrumbManager;
 import com.pheobe.model.Cart_detail;
 import com.pheobe.service.Cart_DAO;
 import com.pheobe.service.Cart_Detail_DAO;
+import raven.toast.Notifications;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -107,7 +108,21 @@ public class ProductDetailComponent extends JPanel {
         infoPanel.add(brandLabel, gbc);
         
         gbc.gridy++;
-        stockLabel = new JLabel("In Stock: " + product.getStock());
+        
+        boolean isOutOfStock = product.getStock() <= 0;
+        
+        if (isOutOfStock) {
+            JLabel outOfStockLabel = new JLabel("OUT OF STOCK");
+            outOfStockLabel.setForeground(Color.RED);
+            outOfStockLabel.setFont(outOfStockLabel.getFont().deriveFont(Font.BOLD, outOfStockLabel.getFont().getSize() + 2));
+            infoPanel.add(outOfStockLabel, gbc);
+            
+            stockLabel = new JLabel("Currently unavailable");
+        } else {
+            stockLabel = new JLabel("In Stock: " + product.getStock());
+        }
+        
+        gbc.gridy++;
         infoPanel.add(stockLabel, gbc);
         
         gbc.gridy++;
@@ -126,32 +141,34 @@ public class ProductDetailComponent extends JPanel {
         descriptionArea.setRows(5);
         infoPanel.add(descriptionArea, gbc);
         
-        gbc.gridy++;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        JLabel quantityLabel = new JLabel("Quantity:");
-        SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, product.getStock(), 1);
-        quantitySpinner = new JSpinner(spinnerModel);
-        quantitySpinner.setPreferredSize(new Dimension(60, 25));
-        quantityPanel.add(quantityLabel);
-        quantityPanel.add(quantitySpinner);
-        infoPanel.add(quantityPanel, gbc);
-        
-        gbc.gridy++;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        
-        addToCartButton = new JButton("Add to Cart");
-        addToCartButton.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e){
-                addToCart(product, 1);
-            }
-        });
-        addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
-        addToCartButton.setPreferredSize(new Dimension(120, 30));
-        infoPanel.add(addToCartButton, gbc);
+        if (!isOutOfStock) {
+            gbc.gridy++;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            JLabel quantityLabel = new JLabel("Quantity:");
+            SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, product.getStock(), 1);
+            quantitySpinner = new JSpinner(spinnerModel);
+            quantitySpinner.setPreferredSize(new Dimension(60, 25));
+            quantityPanel.add(quantityLabel);
+            quantityPanel.add(quantitySpinner);
+            infoPanel.add(quantityPanel, gbc);
+            
+            gbc.gridy++;
+            gbc.insets = new Insets(0, 0, 0, 0);
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.anchor = GridBagConstraints.WEST;
+            
+            addToCartButton = new JButton("Add to Cart");
+            addToCartButton.addActionListener(new ActionListener(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    addToCart(product, 1);
+                }
+            });
+            addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
+            addToCartButton.setPreferredSize(new Dimension(120, 30));
+            infoPanel.add(addToCartButton, gbc);
+        }
         
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
@@ -198,7 +215,9 @@ public class ProductDetailComponent extends JPanel {
     }
 
     public void addAddToCartListener(ActionListener listener) {
-        addToCartButton.addActionListener(listener);
+        if (addToCartButton != null) {
+            addToCartButton.addActionListener(listener);
+        }
     }
     
     public void addBackButtonListener(ActionListener listener) {
@@ -230,23 +249,66 @@ public class ProductDetailComponent extends JPanel {
     }
 
     private void addToCart(Product product, int quantity) {
+        try {
+            if (Application.getCurrentUser() == null) {
+                Application.showMessage(Notifications.Type.WARNING, "Please login to add items to cart");
+                return;
+            }
 
-        quantity = getQuantity();
-        int cartID = getCurrentCartID();
-        Cart_detail cartItem = new Cart_detail();
-        cartItem.setCartID(cartID); 
-        cartItem.setProductId(product.getIdProduct());
-        cartItem.setPrice(product.getPrice());
-        cartItem.setQuantity(quantity);
-        cartItem.setStatus("Active");
-        cartItem.setCreateDate(java.time.LocalDateTime.now());
+            quantity = getQuantity();
 
-        Cart_Detail_DAO cartDetailDAO = new Cart_Detail_DAO();
-        boolean success = cartDetailDAO.insert(cartItem);
-        
-            if (success) {
-                refreshCartForm();
-            } else {
+            if (quantity > product.getStock()) {
+                Application.showMessage(Notifications.Type.WARNING, "Requested quantity exceeds available stock");
+                return;
+            }
+
+            int cartID = getCurrentCartID();
+            if (cartID == -1) {
+                Application.showMessage(Notifications.Type.ERROR, "Failed to get cart information");
+                return;
+            }
+
+            Cart_Detail_DAO cartDetailDAO = new Cart_Detail_DAO();
+            List<Cart_detail> cartDetails = cartDetailDAO.selectAll();
+
+            boolean productFound = false;
+            for (Cart_detail detail : cartDetails) {
+                if (detail.getCartID() == cartID && 
+                    detail.getProductId() == product.getIdProduct() && "Active".equals(detail.getStatus())) {
+
+                    detail.setQuantity(detail.getQuantity() + quantity);
+                    boolean updated = cartDetailDAO.update(detail);
+                    if (updated) {
+                        Application.showMessage(Notifications.Type.SUCCESS, quantity + " item(s) added to cart");
+                        refreshCartForm();
+                    } else {
+                        Application.showMessage(Notifications.Type.ERROR, "Failed to update cart");
+                    }
+                    productFound = true;
+                    break;
+                }
+            }
+
+            if (!productFound) {
+                Cart_detail cartItem = new Cart_detail();
+                cartItem.setCartID(cartID); 
+                cartItem.setProductId(product.getIdProduct());
+                cartItem.setPrice(product.getPrice());
+                cartItem.setQuantity(quantity);
+                cartItem.setStatus("Active");
+                cartItem.setCreateDate(java.time.LocalDateTime.now());
+
+                boolean success = cartDetailDAO.insert(cartItem);
+                if (success) {
+                    Application.showMessage(Notifications.Type.SUCCESS, quantity + " item(s) added to cart");
+                    refreshCartForm();
+                } else {
+                    Application.showMessage(Notifications.Type.ERROR, "Failed to add item to cart");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Application.showMessage(Notifications.Type.ERROR, "Error adding to cart: " + e.getMessage());
         }
     }
 

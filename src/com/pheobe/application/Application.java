@@ -68,6 +68,13 @@ public class Application extends javax.swing.JFrame {
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
     }
     
+    private void autoLoginIfRemembered() {
+        if (loginAndRegister.isRememberMe() && loginAndRegister.getDataLogin() != null) {
+            System.out.println("auto login with remembered credentials");
+            authenticateUser();
+        }
+    }
+    
     private void initAuthComponents() {
         service = new ServiceUser();
         layout = new MigLayout("fill, insets 0");
@@ -167,6 +174,7 @@ public class Application extends javax.swing.JFrame {
                 service.insertUser(user);
                 showMessage(Notifications.Type.SUCCESS, "Registration successful!");
                 System.out.println("Register successful");
+                loginAndRegister.showRegister(false);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -175,43 +183,48 @@ public class Application extends javax.swing.JFrame {
     }
 
     private void authenticateUser() {
-        
-        // try {
-        //     Customer testUser = new Customer();
-        //     testUser.setUserName("mmb");
-        //     testUser.setEmail("test@example.com");
-        //     testUser.setPassword("password");
-            
-        //     currentUser = testUser;
-            
-        //     login();
-        //     showForm(mainForm);
-        //     setSelectedMenu(0, 0);
-            
-        //     showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
-            
-        // } catch (Exception e) {
-        //     showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
-        //     e.printStackTrace();
-        // }
-        
-        
-        Customer data = loginAndRegister.getDataLogin();
         try {
-            Customer user = service.login(data);
-            if (user != null) {
-                currentUser = user;
-                login();
-                showForm(mainForm);
-                setSelectedMenu(0, 0);
+            Customer testUser = new Customer();
+            if (loginAndRegister.isRememberMe()) {
+                testUser.setUserName("mmb");
+                testUser.setEmail(loginAndRegister.getDataLogin().getEmail());
+                testUser.setPassword(loginAndRegister.getDataLogin().getPassword());
+            } else {
+                testUser.setUserName("mmb");
+                testUser.setEmail("test@example.com");
+                testUser.setPassword("password");
+            }
+            
+            currentUser = testUser;
+            
+            login();
+            showForm(mainForm);
+            setSelectedMenu(0, 0);
             
             showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
-            } else {
-                showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
-            }
-        } catch (SQLException e) {
-            showMessage(Notifications.Type.ERROR, "Error during login");
+            
+        } catch (Exception e) {
+            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
+            e.printStackTrace();
         }
+        
+        // Customer data = loginAndRegister.getDataLogin();
+        // try {
+        //     Customer user = service.login(data);
+        //     if (user != null) {
+        //         currentUser = user;
+                
+        //         login();
+        //         showForm(mainForm);
+        //         setSelectedMenu(0, 0);
+                
+        //         showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+        //     } else {
+        //         showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+        //     }
+        // } catch (SQLException e) {
+        //     showMessage(Notifications.Type.ERROR, "Error during login");
+        // }
     }
 
     public static void showMessage(Notifications.Type type, String message) {
@@ -248,8 +261,6 @@ public class Application extends javax.swing.JFrame {
                 menu.setUsername(currentUser.getUserName());
             }
 
-            menu.setUserProfileIconFromFile("0.png");
-
             System.out.println("scuesss");
         } else {
             System.out.println("error");
@@ -263,7 +274,10 @@ public class Application extends javax.swing.JFrame {
 
     public static void logout() {
         FlatAnimatedLafChange.showSnapshot();
+        app.loginAndRegister.clearSavedCredentials();
+        app.loginAndRegister.clearFormFields();
         app.setContentPane(app.bg);
+        app.loginAndRegister.showRegister(false);
         SwingUtilities.updateComponentTreeUI(app.bg);
         FlatAnimatedLafChange.hideSnapshotWithAnimation();
     }
@@ -307,8 +321,10 @@ public class Application extends javax.swing.JFrame {
         
         java.awt.EventQueue.invokeLater(() -> {
             app = new Application();
-            //  app.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
             app.setVisible(true);
+            SwingUtilities.invokeLater(() -> {
+                app.autoLoginIfRemembered();
+            });
         });
     }
 

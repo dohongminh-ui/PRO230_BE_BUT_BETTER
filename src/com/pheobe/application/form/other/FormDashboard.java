@@ -20,11 +20,13 @@ import com.pheobe.service.Cart_DAO;
 import com.pheobe.model.Cart_detail;
 import com.pheobe.service.Cart_Detail_DAO;
 import com.pheobe.application.component.NoProductsPanel;
+import javax.swing.SwingUtilities;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 /**
  *
@@ -76,6 +78,10 @@ public class FormDashboard extends javax.swing.JPanel {
         if (filterBrand > 0) {
             Brand brand = brand_DAO.selectById(filterBrand);
             if (brand != null) {
+                brand.setSearchCount(brand.getSearchCount() + 1);
+                brand.setUpdateDate(java.time.LocalDateTime.now());
+                brand_DAO.update(brand);
+                
                 String currentTitle = lb.getText();
                 if (currentTitle.equals("Home")) {
                     lb.setText("Products - " + brand.getName());
@@ -83,6 +89,8 @@ public class FormDashboard extends javax.swing.JPanel {
                     lb.setText(currentTitle + " - " + brand.getName());
                 }
                 breadcrumbManager.addBreadcrumb(brand.getName(), this);
+                
+                updateMenuSelectionForBrand(brand);
             }
         }
         
@@ -154,16 +162,19 @@ public class FormDashboard extends javax.swing.JPanel {
             @Override
             protected List<Product> doInBackground() throws Exception {
                 List<Product> products;
-                if (filterCategory > 0) {
+                
+                if (filterBrand > 0 && filterCategory <= 0) {
+                    products = product_DAO.getProductsByBrandId(filterBrand);
+                } else if (filterCategory > 0) {
                     products = product_DAO.getProductsByCategoryId(filterCategory);
+                    
+                    if (filterBrand > 0) {
+                        products = products.stream()
+                            .filter(p -> p.getBrandId() == filterBrand)
+                            .collect(Collectors.toList());
+                    }
                 } else {
                     products = product_DAO.getAllProducts();
-                }
-                
-                if (filterBrand > 0) {
-                    products = products.stream()
-                        .filter(p -> p.getBrandId() == filterBrand)
-                        .collect(Collectors.toList());
                 }
                 
                 return products;
@@ -459,13 +470,38 @@ public class FormDashboard extends javax.swing.JPanel {
     private void showProductDetail(Product product, Brand brand, Category category) {
         ProductDetailComponent detailPanel = new ProductDetailComponent(product, brand, category);
         
-        breadcrumbManager.addBreadcrumb(product.getName(), detailPanel);
+        detailPanel.setupBreadcrumb("Home", this);
         
         detailPanel.addBackButtonListener(e -> {
             Application.showForm(this);
         });
 
         Application.showForm(detailPanel);
+    }
+
+    private void updateMenuSelectionForBrand(Brand brand) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Application.getMainForm().setIgnoreNextMenuEvent(true);
+                
+                Brand_DAO brandDAO = new Brand_DAO();
+                ArrayList<Brand> brands = brandDAO.selectAll();
+                
+                int subIndex = -1;
+                for (int i = 0; i < brands.size(); i++) {
+                    if (brands.get(i).getBrandId() == brand.getBrandId()) {
+                        subIndex = i + 1;
+                        break;
+                    }
+                }
+                
+                if (subIndex > 0) {
+                    Application.getMainForm().setSelectedMenu(2, subIndex);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")

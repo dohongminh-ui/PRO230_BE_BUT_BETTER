@@ -5,6 +5,8 @@ import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
 import com.pheobe.application.menu.mode.ToolBarAccentColor;
 import com.pheobe.model.Customer;
+import com.pheobe.model.Brand;
+import com.pheobe.service.Brand_DAO;
 
 import java.awt.AlphaComposite;
 import java.awt.Component;
@@ -40,10 +42,10 @@ import javax.swing.SwingUtilities;
  */
 public class Menu extends JPanel {
 
-    private final String menuItems[][] = {
+    private String menuItems[][] = {
         {"Home"},
         {"Products", "CPU", "GPU", "Motherboard"},
-        {"Brands", "Intel", "AMD", "NVIDIA"},
+        {"Brands"},
         {"Cart"},
         {"Shopping History"},
         {"~OTHER~"},
@@ -108,7 +110,10 @@ public class Menu extends JPanel {
     private final int ANIMATION_DURATION = 200;
     private final int ANIMATION_STEPS = 20;
 
+    private final Brand_DAO brandDAO;
+
     public Menu() {
+        brandDAO = new Brand_DAO();
         init();
         currentWidth = menuMaxWidth;
     }
@@ -172,6 +177,8 @@ public class Menu extends JPanel {
     }
 
     private void createMenu() {
+        updateBrandsSubmenu();
+        
         int index = 0;
         for (int i = 0; i < menuItems.length; i++) {
             String menuName = menuItems[i][0];
@@ -184,7 +191,31 @@ public class Menu extends JPanel {
         }
     }
 
+    private void updateBrandsSubmenu() {
+        try {
+            ArrayList<Brand> brands = brandDAO.selectAll();
+            
+            if (brands.isEmpty()) {
+                return;
+            }
+            
+            String[] brandsSubmenu = new String[brands.size() + 1];
+            brandsSubmenu[0] = "Brands";
+            
+            for (int i = 0; i < brands.size(); i++) {
+                brandsSubmenu[i + 1] = brands.get(i).getName();
+            }
+            
+            menuItems[2] = brandsSubmenu;
+        } catch (Exception e) {
+            System.err.println("Error loading brands for menu: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public void updateMenu(Customer user) {
+        updateBrandsSubmenu();
+        
         panelMenu.removeAll();
 
         int index = 0;
@@ -537,5 +568,10 @@ public class Menu extends JPanel {
             System.err.println("PROFILE IMAGE: Error in setUserProfileIcon: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void refreshBrandsMenu() {
+        updateBrandsSubmenu();
+        updateMenu(null);
     }
 }

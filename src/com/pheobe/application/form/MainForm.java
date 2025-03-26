@@ -25,6 +25,9 @@ import com.pheobe.application.menu.Menu;
 import com.pheobe.application.menu.MenuAction;
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 import javax.swing.Timer;
+import java.util.ArrayList;
+import com.pheobe.service.Brand_DAO;
+import com.pheobe.model.Brand;
 
 /**
  *
@@ -77,9 +80,19 @@ public class MainForm extends JLayeredPane {
         menuButton.setIcon(new FlatSVGIcon("com/pheobe/icon/svg/" + icon, 0.8f));
     }
 
+    private boolean ignoreNextMenuEvent = false;
+
+    public void setIgnoreNextMenuEvent(boolean ignore) {
+        this.ignoreNextMenuEvent = ignore;
+    }
+
     private void initMenuEvent() {
         menu.addMenuEvent((int index, int subIndex, MenuAction action) -> {
-            // Application.mainForm.showForm(new DefaultForm("Form : " + index + " " + subIndex));
+            if (ignoreNextMenuEvent) {
+                ignoreNextMenuEvent = false;
+                return;
+            }
+            
             if (index == 0) {
                 Application.showForm(new FormDashboard());
             } else if (index == 1) {
@@ -91,12 +104,19 @@ public class MainForm extends JLayeredPane {
                 Application.showForm(new FormDashboard(4));
                }
             } else if (index == 2) {
-                if (subIndex == 1) {
-                    Application.showForm(new FormDashboard(2));
-                } else if (subIndex == 2) {
-                Application.showForm(new FormDashboard(3));
-                } else if (subIndex == 3) {
-                Application.showForm(new FormDashboard(4));
+                if (subIndex > 0) {
+                    Brand_DAO brandDAO = new Brand_DAO();
+                    ArrayList<Brand> brands = brandDAO.selectAll();
+                    
+                    if (brands != null && !brands.isEmpty() && subIndex <= brands.size()) {
+                        Brand selectedBrand = brands.get(subIndex - 1);
+                        
+                        Application.showForm(new FormDashboard(0, selectedBrand.getBrandId()));
+                        System.out.println("Selected brand: " + selectedBrand.getName() + " (ID: " + selectedBrand.getBrandId() + ")");
+                    } else {
+                        System.out.println("Invalid brand selection or empty brand list");
+                        action.cancel();
+                    }
                 }
             } else if (index == 3) {
                 Application.showForm(new FormCart1());

@@ -19,6 +19,7 @@ import com.pheobe.model.Cart;
 public class Cart_DAO {
     private String queryToSelectAll = "SELECT * FROM Cart";
     private String queryToSelectByID = "SELECT * FROM Cart WHERE id = ?";
+    private String queryToSelectByIDCustomer = "SELECT * FROM Cart WHERE CustomerID = ?";
     private String queryToInsert = "INSERT INTO Cart (customerId, cartID, status, createDate, updateDate) VALUES (?, ?, ?, ?, ?)";
     private String queryToUpdate = "UPDATE Cart SET customerId = ?, cartID = ?, status = ?, updateDate = ? WHERE id = ?";
     private String queryToDelete = "DELETE FROM Cart WHERE id = ?";
@@ -49,6 +50,29 @@ public class Cart_DAO {
         return carts;
     }
     
+    public Cart selectByIdCusomer(int id) {
+        try {
+            PreparedStatement pre = con.prepareStatement(queryToSelectByIDCustomer);
+            pre.setInt(1, id);
+            ResultSet rs = pre.executeQuery();
+            
+            if (rs.next()) {
+                Cart cart = new Cart();
+                cart.setId(rs.getInt("id"));
+                cart.setCustomerId(rs.getInt("customerId"));
+                cart.setCartID(rs.getString("cartID"));
+                cart.setStatus(rs.getString("status"));
+                cart.setCreateDate(rs.getObject("createDate", LocalDateTime.class));
+                cart.setUpdateDate(rs.getObject("updateDate", LocalDateTime.class));
+                rs.close();
+                pre.close();
+                return cart;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     public Cart selectById(int id) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToSelectByID);

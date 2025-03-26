@@ -25,6 +25,7 @@ public class Cart_Detail_DAO {
     private String queryToInsert = "INSERT INTO Cart_detail (cartID, productId, price, quantity, status, createDate, productColorId) VALUES (?, ?, ?, ?, ?, ?, ?)";
     private String queryToUpdate = "UPDATE Cart_detail SET cartID = ?, productId = ?, price = ?, quantity = ?, status = ?, productColorId = ? WHERE cartDetailID = ?";
     private String queryToDelete = "DELETE FROM Cart_detail WHERE ProductId = ?";
+    private String queryToDeleteByCartId = "DELETE FROM Cart_detail WHERE cartID = ?";
 
     private Connection con = DBcontext.getConnection();
 
@@ -143,6 +144,20 @@ public class Cart_Detail_DAO {
         try {
             PreparedStatement pre = con.prepareStatement(queryToDelete);
             pre.setInt(1, id);
+
+            int row = pre.executeUpdate();
+            pre.close();
+            return row > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteByCartId(int cartId) {
+        try {
+            PreparedStatement pre = con.prepareStatement(queryToDeleteByCartId);
+            pre.setInt(1, cartId);
 
             int row = pre.executeUpdate();
             pre.close();

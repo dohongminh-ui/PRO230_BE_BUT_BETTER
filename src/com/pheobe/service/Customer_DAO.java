@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.pheobe.service;
+
 import com.pheobe.model.Customer;
 import com.pheobe.connection.DBcontext;
 import java.sql.Connection;
@@ -12,25 +13,30 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  *
  * @author Admin
  */
 public class Customer_DAO {
+
     private String queryToSelectAll = "SELECT * FROM Customer";
+    private String queryToSelectAllbyAdmin = "SELECT * FROM Customer WHERE isAdmin = 0";
     private String queryToSelectByID = "SELECT * FROM Customer WHERE idCustomer = ?";
     private String queryToInsert = "INSERT INTO Customer (name, sex, createDate, email, phoneNumber, address, status, password, userName, logOut, accountFailCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private String queryToUpdate = "UPDATE Customer SET Name = ?, Email=?, phoneNumber = ?, Address = ?, img = ?  WHERE idCustomer = ?";
-    private String queryToDelete = "DELETE FROM Customer WHERE idCustomer = ?";
-    
+    private String queryToDelete = "DELETE FROM CART_DETAIL WHERE CartID IN (SELECT id FROM CART WHERE CustomerId = ?); "
+            + "DELETE FROM CART WHERE CustomerId = ?; "
+            + "DELETE FROM Customer WHERE idCustomer = ?";
+
     private Connection con = DBcontext.getConnection();
-    
+
     public ArrayList<Customer> selectAll() {
         ArrayList<Customer> customers = new ArrayList<>();
         try {
             PreparedStatement pre = con.prepareStatement(queryToSelectAll);
             ResultSet rs = pre.executeQuery();
-            
+
             while (rs.next()) {
                 Customer customer = new Customer();
                 customer.setIdCustomer(rs.getInt("idCustomer"));
@@ -54,14 +60,44 @@ public class Customer_DAO {
         }
         return customers;
     }
-    
+
+    public ArrayList<Customer> queryToSelectAllbyAdmin() {
+        ArrayList<Customer> customers = new ArrayList<>();
+
+        try {
+            PreparedStatement pre = con.prepareStatement(queryToSelectAllbyAdmin);
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                Customer customer = new Customer();
+                customer.setIdCustomer(rs.getInt("idCustomer"));
+                customer.setName(rs.getString("name"));
+                customer.setSex(rs.getString("sex"));
+                customer.setCreateDate(rs.getObject("createDate", LocalDateTime.class));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhoneNumber(rs.getString("phoneNumber"));
+                customer.setAddress(rs.getString("address"));
+                customer.setStatus(rs.getString("status"));
+                customer.setPassword(rs.getString("password"));
+                customer.setUserName(rs.getString("userName"));
+                customer.setLogOut(rs.getObject("logOut", LocalDateTime.class));
+                customer.setAccountFailCount(rs.getInt("accountFailCount"));
+                customers.add(customer);
+            }
+            rs.close();
+            pre.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+
     public Customer selectById(int id) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToSelectByID);
             pre.setInt(1, id);
             System.err.println("DATABASE QUERY: Retrieving customer with ID: " + id);
             ResultSet rs = pre.executeQuery();
-            
+
             if (rs.next()) {
                 Customer customer = new Customer();
                 customer.setIdCustomer(rs.getInt("idCustomer"));
@@ -76,7 +112,7 @@ public class Customer_DAO {
                 customer.setUserName(rs.getString("userName"));
                 customer.setLogOut(rs.getObject("logOut", LocalDateTime.class));
                 customer.setAccountFailCount(rs.getInt("accountFailCount"));
-                
+
                 try {
                     String imgValue = rs.getString("img");
                     customer.setImg(imgValue);
@@ -85,7 +121,7 @@ public class Customer_DAO {
                     System.err.println("DATABASE QUERY ERROR: Failed to retrieve 'img' field for user " + id + ": " + ex.getMessage());
                     ex.printStackTrace();
                 }
-                
+
                 rs.close();
                 pre.close();
                 return customer;
@@ -98,7 +134,7 @@ public class Customer_DAO {
         }
         return null;
     }
-    
+
     public boolean insert(Customer customer) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToInsert);
@@ -113,7 +149,7 @@ public class Customer_DAO {
             pre.setString(9, customer.getUserName());
             pre.setObject(10, customer.getLogOut());
             pre.setInt(11, customer.getAccountFailCount());
-            
+
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;
@@ -122,7 +158,7 @@ public class Customer_DAO {
         }
         return false;
     }
-    
+
     public boolean update(Customer customer) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToUpdate);
@@ -140,12 +176,14 @@ public class Customer_DAO {
         }
         return false;
     }
-    
-    public boolean delete(int id) {
+
+    public boolean delete(int customerId, int adminId) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToDelete);
-            pre.setInt(1, id);
-            
+            pre.setInt(1, customerId);
+            pre.setInt(2, customerId);
+            pre.setInt(3, customerId);
+
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;

@@ -40,12 +40,17 @@ public class FormDashboard extends javax.swing.JPanel {
     private Category_DAO category_DAO;
     private BreadcrumbManager breadcrumbManager;
     private int filterCategory = 0;
+    private int filterBrand = 0;
 
     public FormDashboard() {
-        this(0);
+        this(0, 0);
     }
 
     public FormDashboard(int categoryFilter) {
+        this(categoryFilter, 0);
+    }
+
+    public FormDashboard(int categoryFilter, int brandFilter) {
         initComponents();
         lb.putClientProperty(FlatClientProperties.STYLE, "" + "font:$h1.font");
         
@@ -54,6 +59,7 @@ public class FormDashboard extends javax.swing.JPanel {
         category_DAO = new Category_DAO();
         
         this.filterCategory = categoryFilter;
+        this.filterBrand = brandFilter;
         
         breadcrumbManager = BreadcrumbManager.getInstance();
         breadcrumbManager.clear();
@@ -64,6 +70,19 @@ public class FormDashboard extends javax.swing.JPanel {
             if (category != null) {
                 lb.setText("Products - " + category.getName());
                 breadcrumbManager.addBreadcrumb(category.getName(), this);
+            }
+        }
+        
+        if (filterBrand > 0) {
+            Brand brand = brand_DAO.selectById(filterBrand);
+            if (brand != null) {
+                String currentTitle = lb.getText();
+                if (currentTitle.equals("Home")) {
+                    lb.setText("Products - " + brand.getName());
+                } else {
+                    lb.setText(currentTitle + " - " + brand.getName());
+                }
+                breadcrumbManager.addBreadcrumb(brand.getName(), this);
             }
         }
         
@@ -134,11 +153,20 @@ public class FormDashboard extends javax.swing.JPanel {
         SwingWorker<List<Product>, Void> worker = new SwingWorker<List<Product>, Void>() {
             @Override
             protected List<Product> doInBackground() throws Exception {
+                List<Product> products;
                 if (filterCategory > 0) {
-                    return product_DAO.getProductsByCategoryId(filterCategory);
+                    products = product_DAO.getProductsByCategoryId(filterCategory);
                 } else {
-                    return product_DAO.getAllProducts();
+                    products = product_DAO.getAllProducts();
                 }
+                
+                if (filterBrand > 0) {
+                    products = products.stream()
+                        .filter(p -> p.getBrandId() == filterBrand)
+                        .collect(Collectors.toList());
+                }
+                
+                return products;
             }
 
             @Override
@@ -161,6 +189,7 @@ public class FormDashboard extends javax.swing.JPanel {
         List<Product> filteredProducts = products.stream()
             .filter(p -> "Active".equals(p.getStatus()))
             .filter(p -> filterCategory <= 0 || p.getCategoryId() == filterCategory)
+            .filter(p -> filterBrand <= 0 || p.getBrandId() == filterBrand)
             .collect(Collectors.toList());
         
         if (filteredProducts.isEmpty()) {
@@ -330,7 +359,8 @@ public class FormDashboard extends javax.swing.JPanel {
             boolean anyProductsAdded = false;
             
             for (Product product : searchResults) {
-                if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
+                if ((filterCategory > 0 && product.getCategoryId() != filterCategory) ||
+                    (filterBrand > 0 && product.getBrandId() != filterBrand)) {
                     continue;
                 }
                 Brand brand = brand_DAO.selectById(product.getBrandId());
@@ -351,7 +381,15 @@ public class FormDashboard extends javax.swing.JPanel {
             }
             
             if (!anyProductsAdded) {
-                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + searchText + "\" in this category");
+                String filterText = "";
+                if (filterCategory > 0 && filterBrand > 0) {
+                    filterText = " in this category and brand";
+                } else if (filterCategory > 0) {
+                    filterText = " in this category";
+                } else if (filterBrand > 0) {
+                    filterText = " for this brand";
+                }
+                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + searchText + "\"" + filterText);
                 productsPanel.add(noProductsPanel);
             }
         }
@@ -374,9 +412,12 @@ public class FormDashboard extends javax.swing.JPanel {
             NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + text + "\"");
             productsPanel.add(noProductsPanel);
         } else {
+            boolean anyProductsAdded = false;
+            
             for (Product product : searchResults) {
                 if ("Active".equals(product.getStatus())) {
-                    if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
+                    if ((filterCategory > 0 && product.getCategoryId() != filterCategory) ||
+                        (filterBrand > 0 && product.getBrandId() != filterBrand)) {
                         continue;
                     }
                     Brand brand = brand_DAO.selectById(product.getBrandId());
@@ -392,12 +433,21 @@ public class FormDashboard extends javax.swing.JPanel {
                             }
                         });
                         productsPanel.add(productCard);
+                        anyProductsAdded = true;
                     }
                 }
             }
             
-            if (productsPanel.getComponentCount() == 0) {
-                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + text + "\" in this category");
+            if (!anyProductsAdded) {
+                String filterText = "";
+                if (filterCategory > 0 && filterBrand > 0) {
+                    filterText = " in this category and brand";
+                } else if (filterCategory > 0) {
+                    filterText = " in this category";
+                } else if (filterBrand > 0) {
+                    filterText = " for this brand";
+                }
+                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + text + "\"" + filterText);
                 productsPanel.add(noProductsPanel);
             }
         }

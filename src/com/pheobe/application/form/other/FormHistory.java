@@ -124,7 +124,12 @@ public class FormHistory extends javax.swing.JPanel {
                 orderSummaries.put(orderId, summary);
             }
             
-            for (OrderSummary summary : orderSummaries.values()) {
+            List<OrderSummary> sortedSummaries = new ArrayList<>(orderSummaries.values());
+            sortedSummaries.sort((a, b) -> {
+                return b.getOrderDate().compareTo(a.getOrderDate());
+            });
+            
+            for (OrderSummary summary : sortedSummaries) {
                 historyTableModel.addRow(new Object[]{
                     summary.getOrderId(),
                     summary.getOrderDate(),

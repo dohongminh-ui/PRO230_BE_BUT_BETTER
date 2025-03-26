@@ -22,6 +22,7 @@ import com.pheobe.application.form.other.FormDashboard;
 import com.pheobe.application.form.other.FormHistory;
 import com.pheobe.application.menu.Menu;
 import com.pheobe.application.menu.MenuAction;
+import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 import javax.swing.Timer;
 
 /**
@@ -32,6 +33,12 @@ public class MainForm extends JLayeredPane {
 
     public MainForm() {
         init();
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                Application.refreshCurrentUser();
+            }
+        });
     }
 
     private void init() {

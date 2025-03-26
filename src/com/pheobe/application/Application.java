@@ -33,6 +33,7 @@ import org.jdesktop.animation.timing.Animator;
 import org.jdesktop.animation.timing.TimingTarget;
 import org.jdesktop.animation.timing.TimingTargetAdapter;
 import raven.toast.Notifications;
+import com.pheobe.service.Customer_DAO;
 
 /**
  *
@@ -183,48 +184,48 @@ public class Application extends javax.swing.JFrame {
     }
 
     private void authenticateUser() {
-        try {
-            Customer testUser = new Customer();
-            if (loginAndRegister.isRememberMe()) {
-                testUser.setUserName("mmb");
-                testUser.setEmail(loginAndRegister.getDataLogin().getEmail());
-                testUser.setPassword(loginAndRegister.getDataLogin().getPassword());
-            } else {
-                testUser.setUserName("mmb");
-                testUser.setEmail("test@example.com");
-                testUser.setPassword("password");
-            }
-            
-            currentUser = testUser;
-            
-            login();
-            showForm(mainForm);
-            setSelectedMenu(0, 0);
-            
-            showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
-            
-        } catch (Exception e) {
-            showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        // Customer data = loginAndRegister.getDataLogin();
         // try {
-        //     Customer user = service.login(data);
-        //     if (user != null) {
-        //         currentUser = user;
-                
-        //         login();
-        //         showForm(mainForm);
-        //         setSelectedMenu(0, 0);
-                
-        //         showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+        //     Customer testUser = new Customer();
+        //     if (loginAndRegister.isRememberMe()) {
+        //         testUser.setUserName("mmb");
+        //         testUser.setEmail(loginAndRegister.getDataLogin().getEmail());
+        //         testUser.setPassword(loginAndRegister.getDataLogin().getPassword());
         //     } else {
-        //         showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+        //         testUser.setUserName("mmb");
+        //         testUser.setEmail("test@example.com");
+        //         testUser.setPassword("password");
         //     }
-        // } catch (SQLException e) {
-        //     showMessage(Notifications.Type.ERROR, "Error during login");
+            
+        //     currentUser = testUser;
+            
+        //     login();
+        //     showForm(mainForm);
+        //     setSelectedMenu(0, 0);
+            
+        //     showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+            
+        // } catch (Exception e) {
+        //     showMessage(Notifications.Type.ERROR, "Error during login: " + e.getMessage());
+        //     e.printStackTrace();
         // }
+        
+        Customer data = loginAndRegister.getDataLogin();
+        try {
+            Customer user = service.login(data);
+            if (user != null) {
+                currentUser = user;
+                
+                login();
+                showForm(mainForm);
+                setSelectedMenu(0, 0);
+                
+                showMessage(Notifications.Type.SUCCESS, "Logged in as " + currentUser.getUserName());
+            } else {
+                showMessage(Notifications.Type.ERROR, "Email and Password incorrect");
+            }
+        } catch (SQLException e) {
+            showMessage(Notifications.Type.ERROR, "Error during login");
+        }
     }
 
     public static void showMessage(Notifications.Type type, String message) {
@@ -259,11 +260,21 @@ public class Application extends javax.swing.JFrame {
 
             if (menu != null) {
                 menu.setUsername(currentUser.getUserName());
+                
+                System.out.println("Setting profile picture on login. Current user img: " + (currentUser.getImg() != null ? currentUser.getImg() : "null"));
+                
+                if (currentUser.getImg() != null && !currentUser.getImg().isEmpty()) {
+                    menu.setUserProfileIconFromFile(currentUser.getImg());
+                } else {
+                    menu.setUserProfileIconFromFile("0.png");
+                }
+
+                menu.updateMenu(currentUser);
             }
 
-            System.out.println("scuesss");
+            System.out.println("Login successful");
         } else {
-            System.out.println("error");
+            System.out.println("Login error: No current user");
         }
         
         setSelectedMenu(0, 0);
@@ -334,5 +345,40 @@ public class Application extends javax.swing.JFrame {
     // Getter for the current user
     public static Customer getCurrentUser() {
         return currentUser;
+    }
+
+    public static MainForm getMainForm() {
+        return app.mainForm;
+    }
+
+    public static void refreshCurrentUser() {
+        if (currentUser != null) {
+            Customer_DAO customerDAO = new Customer_DAO();
+            int userId = currentUser.getIdCustomer();
+            Customer refreshedUser = customerDAO.selectById(userId);
+            
+            if (refreshedUser != null) {
+                String originalImg = currentUser.getImg();
+                currentUser = refreshedUser;
+                System.out.println("Current user refreshed. Image from DB: " + currentUser.getImg());
+                
+                Menu menu = app.mainForm.getMenu();
+                if (menu != null) {
+                    menu.setUsername(currentUser.getUserName());
+                    
+                    if (currentUser.getImg() != null && !currentUser.getImg().isEmpty()) {
+                        System.out.println("Setting menu profile picture to: " + currentUser.getImg());
+                        menu.setUserProfileIconFromFile(currentUser.getImg());
+                    } else if (originalImg != null && !originalImg.isEmpty()) {
+                        System.out.println("Using original image: " + originalImg);
+                        currentUser.setImg(originalImg);
+                        menu.setUserProfileIconFromFile(originalImg);
+                    } else {
+                        System.out.println("Setting default profile picture");
+                        menu.setUserProfileIconFromFile("0.png");
+                    }
+                }
+            }
+        }
     }
 }

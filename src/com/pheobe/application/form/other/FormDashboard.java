@@ -19,10 +19,12 @@ import com.pheobe.model.Cart;
 import com.pheobe.service.Cart_DAO;
 import com.pheobe.model.Cart_detail;
 import com.pheobe.service.Cart_Detail_DAO;
+import com.pheobe.application.component.NoProductsPanel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -155,12 +157,22 @@ public class FormDashboard extends javax.swing.JPanel {
 
     private void displayProducts(List<Product> products) {
         productsPanel.removeAll();
-
-        for (Product product : products) {
-            if ("Active".equals(product.getStatus())) {
-                if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
-                    continue;
-                }
+        
+        List<Product> filteredProducts = products.stream()
+            .filter(p -> "Active".equals(p.getStatus()))
+            .filter(p -> filterCategory <= 0 || p.getCategoryId() == filterCategory)
+            .collect(Collectors.toList());
+        
+        if (filteredProducts.isEmpty()) {
+            String message = "No products available in this category";
+            if (searchComponent.getSearchText() != null && !searchComponent.getSearchText().isEmpty()) {
+                message = "No results found for \"" + searchComponent.getSearchText() + "\"";
+            }
+            
+            NoProductsPanel noProductsPanel = new NoProductsPanel(message);
+            productsPanel.add(noProductsPanel);
+        } else {
+            for (Product product : filteredProducts) {
                 Brand brand = brand_DAO.selectById(product.getBrandId());
                 Category category = category_DAO.selectById(product.getCategoryId());
 
@@ -186,6 +198,11 @@ public class FormDashboard extends javax.swing.JPanel {
         try {
             if (Application.getCurrentUser() == null) {
                 showMessage(Notifications.Type.WARNING, "Please login to add items to cart");
+                return;
+            }
+
+            if (product.getStock() <= 0) {
+                showMessage(Notifications.Type.WARNING, "\"" + product.getName() + "\" is out of stock");
                 return;
             }
 
@@ -237,9 +254,22 @@ public class FormDashboard extends javax.swing.JPanel {
                 if (detail.getCartID() == activeCart.getId() && 
                     detail.getProductId() == product.getIdProduct() && 
                     "Active".equals(detail.getStatus())) {
-                    
+
+                    if (detail.getQuantity() + 1 > product.getStock()) {
+                        showMessage(Notifications.Type.WARNING, 
+                            "Cannot add more \"" + product.getName() + "\". Maximum stock reached (" + product.getStock() + ")");
+                        return;
+                    }
+
                     detail.setQuantity(detail.getQuantity() + 1);
-                    cartDetailDao.update(detail);
+                    boolean updated = cartDetailDao.update(detail);
+
+                    if (updated) {
+                        showMessage(Notifications.Type.SUCCESS, "Added one more \"" + product.getName() + "\" to cart");
+                    } else {
+                        showMessage(Notifications.Type.ERROR, "Failed to update \"" + product.getName() + "\" in cart");
+                    }
+
                     productFound = true;
                     break;
                 }
@@ -252,15 +282,39 @@ public class FormDashboard extends javax.swing.JPanel {
                 newDetail.setQuantity(1);
                 newDetail.setPrice(product.getPrice());
                 newDetail.setStatus("Active");
-                
-                cartDetailDao.insert(newDetail);
+                newDetail.setCreateDate(java.time.LocalDateTime.now());
+
+                boolean success = cartDetailDao.insert(newDetail);
+                if (success) {
+                    showMessage(Notifications.Type.SUCCESS, "\"" + product.getName() + "\" added to cart");
+                } else {
+                    showMessage(Notifications.Type.ERROR, "Failed to add \"" + product.getName() + "\" to cart");
+                }
             }
 
-            showMessage(Notifications.Type.SUCCESS, "Product added to cart");
+            refreshCartIfVisible();
+
         } catch (Exception e) {
             e.printStackTrace();
-            showMessage(Notifications.Type.ERROR, "Error adding product to cart: " + e.getMessage());
+            showMessage(Notifications.Type.ERROR, "Error adding \"" + product.getName() + "\" to cart: " + e.getMessage());
         }
+    }
+    
+    private void refreshCartIfVisible() {
+        SwingUtilities.invokeLater(() -> {
+            for (Window window : Window.getWindows()) {
+                if (window instanceof JFrame) {
+                    JFrame frame = (JFrame) window;
+                    for (Component comp : frame.getContentPane().getComponents()) {
+                        if (comp instanceof FormCart1) {
+                            FormCart1 cartForm = (FormCart1) comp;
+                            cartForm.refreshCart();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
     }
     
     private void performSearch(String searchText) {
@@ -270,8 +324,11 @@ public class FormDashboard extends javax.swing.JPanel {
         productsPanel.removeAll();
         
         if(searchResults.isEmpty()){
-            showMessage(Notifications.Type.ERROR, "No results found");
+            NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + searchText + "\"");
+            productsPanel.add(noProductsPanel);
         } else {
+            boolean anyProductsAdded = false;
+            
             for (Product product : searchResults) {
                 if (filterCategory > 0 && product.getCategoryId() != filterCategory) {
                     continue;
@@ -289,7 +346,13 @@ public class FormDashboard extends javax.swing.JPanel {
                         }
                     });
                     productsPanel.add(productCard);
+                    anyProductsAdded = true;
                 }
+            }
+            
+            if (!anyProductsAdded) {
+                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + searchText + "\" in this category");
+                productsPanel.add(noProductsPanel);
             }
         }
         
@@ -305,11 +368,11 @@ public class FormDashboard extends javax.swing.JPanel {
             return;
         }
         List<Product> searchResults = product_DAO.searchProductsByName(text);
-        
         productsPanel.removeAll();
 
         if (searchResults.isEmpty()) {
-            showMessage(Notifications.Type.INFO, "No results found");
+            NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + text + "\"");
+            productsPanel.add(noProductsPanel);
         } else {
             for (Product product : searchResults) {
                 if ("Active".equals(product.getStatus())) {
@@ -332,6 +395,11 @@ public class FormDashboard extends javax.swing.JPanel {
                     }
                 }
             }
+            
+            if (productsPanel.getComponentCount() == 0) {
+                NoProductsPanel noProductsPanel = new NoProductsPanel("No results found for \"" + text + "\" in this category");
+                productsPanel.add(noProductsPanel);
+            }
         }
         
         productsPanel.revalidate();
@@ -346,12 +414,6 @@ public class FormDashboard extends javax.swing.JPanel {
         detailPanel.addBackButtonListener(e -> {
             Application.showForm(this);
         });
-        
-        detailPanel.addAddToCartListener(e -> {
-            int quantity = detailPanel.getQuantity();
-            addToCart(product);
-            Application.showMessage(Notifications.Type.SUCCESS, quantity + " item added to cart");
-        });
 
         Application.showForm(detailPanel);
     }
@@ -363,7 +425,7 @@ public class FormDashboard extends javax.swing.JPanel {
         lb = new javax.swing.JLabel();
 
         lb.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lb.setText("Dashboard");
+        lb.setText("Home");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

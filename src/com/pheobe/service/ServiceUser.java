@@ -19,7 +19,7 @@ public class ServiceUser {
 
     public Customer login(Customer login) throws SQLException {
         Customer data = null;
-        PreparedStatement p = con.prepareStatement("SELECT IdCustomer, UserName, Email, isAdmin FROM CUSTOMER WHERE Email=? AND Password=?");
+        PreparedStatement p = con.prepareStatement("SELECT IdCustomer, UserName, Email, isAdmin, img FROM CUSTOMER WHERE Email=? AND Password=?");
         p.setString(1, login.getEmail());
         p.setString(2, login.getPassword());
         ResultSet r = p.executeQuery();
@@ -28,9 +28,20 @@ public class ServiceUser {
             String userName = r.getString(2);
             String email = r.getString(3);
             boolean isAdmin = r.getBoolean(4);
+            String img = null;
+            try {
+                img = r.getString(5);
+                System.err.println("AUTH: User img from login query: " + img);
+            } catch (Exception e) {
+                System.err.println("AUTH: Could not retrieve img: " + e.getMessage());
+            }
             data = new Customer(userID, email, "", userName);
             data.setAdmin(isAdmin);
+            data.setImg(img);
             updateLastLogin(userID);
+            System.err.println("AUTH: Login successful for user: " + userName + " (ID: " + userID + ")");
+        } else {
+            System.err.println("AUTH: Login failed - no matching user found");
         }
         r.close();
         p.close();

@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
 import com.pheobe.application.menu.mode.ToolBarAccentColor;
+import com.pheobe.model.Customer;
 
 import java.awt.AlphaComposite;
 import java.awt.Component;
@@ -31,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -46,6 +48,10 @@ public class Menu extends JPanel {
         {"Shopping History"},
         {"~OTHER~"},
         {"User", "Personal Information", "Logout"}
+    };
+
+    private final String adminMenuItems[][] = {
+        {"Control Panel", "Customer Management", "Product Management", "Category Management"}
     };
 
     private static final int USER_MENU_INDEX = 5;
@@ -176,6 +182,31 @@ public class Menu extends JPanel {
                 panelMenu.add(menuItem);
             }
         }
+    }
+
+    public void updateMenu(Customer user) {
+        panelMenu.removeAll();
+
+        int index = 0;
+        for (int i = 0; i < menuItems.length; i++) {
+            String menuName = menuItems[i][0];
+            if (menuName.startsWith("~") && menuName.endsWith("~")) {
+                panelMenu.add(createTitle(menuName));
+            } else {
+                MenuItem menuItem = new MenuItem(this, menuItems[i], index++, events);
+                panelMenu.add(menuItem);
+            }
+        }
+
+        if (user != null && user.isAdmin()) {
+            for (int i = 0; i < adminMenuItems.length; i++) {
+                MenuItem menuItem = new MenuItem(this, adminMenuItems[i], index++, events);
+                panelMenu.add(menuItem);
+            }
+        }
+
+        revalidate();
+        repaint();
     }
 
     private Component createTitle(String title) {
@@ -407,51 +438,104 @@ public class Menu extends JPanel {
         }
     }
     
-    public void setUserProfileIconFromFile(String fileName) {
-        try {
-            String defaultPath = "com/pheobe/icon/pfp/";
+    public void setUserProfileIconFromFile(final String fileName) {
+        SwingUtilities.invokeLater(() -> {
+            System.err.println("PROFILE IMAGE: Attempting to set profile icon from file: " + fileName);
             
-            if (!fileName.contains(defaultPath)) {
-                fileName = defaultPath + fileName;
+            String fileNameToUse = fileName;
+            
+            if (fileNameToUse == null || fileNameToUse.isEmpty()) {
+                fileNameToUse = "0.png";
+                System.err.println("PROFILE IMAGE: Using default image: " + fileNameToUse);
             }
             
-            BufferedImage image = ImageIO.read(getClass().getResource("/" + fileName));
-            if (image != null) {
-                setUserProfileIcon(image);
-            } else {
-                image = ImageIO.read(new File(fileName));
-                if (image != null) {
-                    setUserProfileIcon(image);
+            try {
+                String resourcePath = "/com/pheobe/icon/pfp/" + fileNameToUse;
+                System.err.println("PROFILE IMAGE: Trying to load from resource path: " + resourcePath);
+                java.net.URL imageUrl = getClass().getResource(resourcePath);
+                
+                if (imageUrl != null) {
+                    System.err.println("PROFILE IMAGE: Resource URL found: " + imageUrl);
+                    BufferedImage image = ImageIO.read(imageUrl);
+                    if (image != null) {
+                        setUserProfileIcon(image);
+                        System.err.println("PROFILE IMAGE: SUCCESSFULLY loaded from resources: " + resourcePath);
+                        return;
+                    } else {
+                        System.err.println("PROFILE IMAGE: Failed to read image from resource URL");
+                    }
+                } else {
+                    System.err.println("PROFILE IMAGE: Resource URL not found for: " + resourcePath);
                 }
+                
+                String filePath = System.getProperty("user.dir") + "/src/com/pheobe/icon/pfp/" + fileNameToUse;
+                System.err.println("PROFILE IMAGE: Trying to load from file path: " + filePath);
+                File imageFile = new File(filePath);
+                
+                if (imageFile.exists()) {
+                    System.err.println("PROFILE IMAGE: File exists: " + filePath);
+                    BufferedImage image = ImageIO.read(imageFile);
+                    if (image != null) {
+                        setUserProfileIcon(image);
+                        System.err.println("PROFILE IMAGE: SUCCESSFULLY loaded from file: " + filePath);
+                        return;
+                    } else {
+                        System.err.println("PROFILE IMAGE: Failed to read image from file");
+                    }
+                } else {
+                    System.err.println("PROFILE IMAGE: File does not exist: " + filePath);
+                }
+                
+                if (!fileNameToUse.equals("0.png")) {
+                    System.err.println("PROFILE IMAGE: Falling back to default image");
+                    setUserProfileIconFromFile("0.png");
+                    return;
+                }
+                
+                System.err.println("PROFILE IMAGE: Failed to load profile image: " + fileNameToUse);
+                
+            } catch (Exception e) {
+                System.err.println("PROFILE IMAGE: Error loading profile image: " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
     
     private void setUserProfileIcon(BufferedImage image) {
-        int size = UIScale.scale(24);
-        
-        BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = circleBuffer.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.fill(new Ellipse2D.Double(0, 0, size, size));
-        g2.setComposite(AlphaComposite.SrcIn);
-        
-        Image scaledImage = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
-        g2.drawImage(scaledImage, 0, 0, null);
-        g2.dispose();
-        
-        ImageIcon icon = new ImageIcon(circleBuffer);
-        
-        for (Component com : panelMenu.getComponents()) {
-            if (com instanceof MenuItem) {
-                MenuItem item = (MenuItem) com;
-                if (item.getMenuIndex() == USER_MENU_INDEX) {
-                    item.setMenuIcon(icon);
-                    break;
+        try {
+            int size = UIScale.scale(24);
+            
+            BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = circleBuffer.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.fill(new Ellipse2D.Double(0, 0, size, size));
+            g2.setComposite(AlphaComposite.SrcIn);
+            
+            Image scaledImage = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+            g2.drawImage(scaledImage, 0, 0, null);
+            g2.dispose();
+            
+            ImageIcon icon = new ImageIcon(circleBuffer);
+            
+            boolean found = false;
+            for (Component com : panelMenu.getComponents()) {
+                if (com instanceof MenuItem) {
+                    MenuItem item = (MenuItem) com;
+                    if (item.getMenuIndex() == USER_MENU_INDEX) {
+                        item.setMenuIcon(icon);
+                        found = true;
+                        System.err.println("PROFILE IMAGE: Successfully set user menu icon");
+                        break;
+                    }
                 }
             }
+            
+            if (!found) {
+                System.err.println("PROFILE IMAGE: WARNING - Could not find user menu item at index " + USER_MENU_INDEX);
+            }
+        } catch (Exception e) {
+            System.err.println("PROFILE IMAGE: Error in setUserProfileIcon: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

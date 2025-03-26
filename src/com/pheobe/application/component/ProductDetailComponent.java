@@ -37,14 +37,44 @@ public class ProductDetailComponent extends JPanel {
     private JButton addToCartButton;
     private JButton backButton;
     private JSpinner quantitySpinner;
+    private int existingCartQuantity = 0;
 
     public ProductDetailComponent(Product product, Brand brand, Category category) {
         this.product = product;
         this.brand = brand;
         this.category = category;
 
+        checkExistingCartQuantity();
         init();
         loadImage();
+    }
+
+    private void checkExistingCartQuantity() {
+        try {
+            if (Application.getCurrentUser() == null) {
+                return;
+            }
+            
+            int cartId = getCurrentCartID();
+            if (cartId == -1) {
+                return;
+            }
+            
+            Cart_Detail_DAO cartDetailDAO = new Cart_Detail_DAO();
+            List<Cart_detail> cartDetails = cartDetailDAO.selectAll();
+            
+            for (Cart_detail detail : cartDetails) {
+                if (detail.getCartID() == cartId && 
+                    detail.getProductId() == product.getIdProduct() && 
+                    "Active".equals(detail.getStatus())) {
+                    
+                    existingCartQuantity = detail.getQuantity();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void init() {
@@ -146,28 +176,50 @@ public class ProductDetailComponent extends JPanel {
             gbc.insets = new Insets(0, 0, 0, 0);
             JPanel quantityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             JLabel quantityLabel = new JLabel("Quantity:");
-            SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1, product.getStock(), 1);
-            quantitySpinner = new JSpinner(spinnerModel);
-            quantitySpinner.setPreferredSize(new Dimension(60, 25));
-            quantityPanel.add(quantityLabel);
-            quantityPanel.add(quantitySpinner);
-            infoPanel.add(quantityPanel, gbc);
             
-            gbc.gridy++;
-            gbc.insets = new Insets(0, 0, 0, 0);
-            gbc.fill = GridBagConstraints.NONE;
-            gbc.anchor = GridBagConstraints.WEST;
+            int availableStock = product.getStock() - existingCartQuantity;
+            int initialValue = 1;
             
-            addToCartButton = new JButton("Add to Cart");
-            addToCartButton.addActionListener(new ActionListener(){
-                @Override
-                public void actionPerformed(ActionEvent e){
-                    addToCart(product, 1);
+            if (availableStock <= 0) {
+                JLabel alreadyInCartLabel = new JLabel("Maximum quantity already in cart");
+                alreadyInCartLabel.setForeground(Color.RED);
+                infoPanel.add(alreadyInCartLabel, gbc);
+                
+                gbc.gridy++;
+                JLabel cartQuantityLabel = new JLabel("In cart: " + existingCartQuantity);
+                infoPanel.add(cartQuantityLabel, gbc);
+            } else {
+                SpinnerNumberModel spinnerModel = new SpinnerNumberModel(initialValue, 1, availableStock, 1);
+                quantitySpinner = new JSpinner(spinnerModel);
+                quantitySpinner.setPreferredSize(new Dimension(60, 25));
+                
+                if (existingCartQuantity > 0) {
+                    quantityPanel.add(quantityLabel);
+                    quantityPanel.add(quantitySpinner);
+                    quantityPanel.add(new JLabel("(Already in cart: " + existingCartQuantity + ")"));
+                } else {
+                    quantityPanel.add(quantityLabel);
+                    quantityPanel.add(quantitySpinner);
                 }
-            });
-            addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
-            addToCartButton.setPreferredSize(new Dimension(120, 30));
-            infoPanel.add(addToCartButton, gbc);
+                
+                infoPanel.add(quantityPanel, gbc);
+                
+                gbc.gridy++;
+                gbc.insets = new Insets(0, 0, 0, 0);
+                gbc.fill = GridBagConstraints.NONE;
+                gbc.anchor = GridBagConstraints.WEST;
+                
+                addToCartButton = new JButton("Add to Cart");
+                addToCartButton.addActionListener(new ActionListener(){
+                    @Override
+                    public void actionPerformed(ActionEvent e){
+                        addToCart(product, 1);
+                    }
+                });
+                addToCartButton.putClientProperty(FlatClientProperties.STYLE, "arc: 10; background: #4CAF50;");
+                addToCartButton.setPreferredSize(new Dimension(120, 30));
+                infoPanel.add(addToCartButton, gbc);
+            }
         }
         
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -256,9 +308,11 @@ public class ProductDetailComponent extends JPanel {
             }
 
             quantity = getQuantity();
+            int totalQuantity = quantity + existingCartQuantity;
 
-            if (quantity > product.getStock()) {
-                Application.showMessage(Notifications.Type.WARNING, "Requested quantity exceeds available stock");
+            if (totalQuantity > product.getStock()) {
+                Application.showMessage(Notifications.Type.WARNING, 
+                    "Total quantity (" + totalQuantity + ") of \"" + product.getName() + "\" exceeds available stock (" + product.getStock() + ")");
                 return;
             }
 
@@ -279,10 +333,15 @@ public class ProductDetailComponent extends JPanel {
                     detail.setQuantity(detail.getQuantity() + quantity);
                     boolean updated = cartDetailDAO.update(detail);
                     if (updated) {
-                        Application.showMessage(Notifications.Type.SUCCESS, quantity + " item(s) added to cart");
+                        Application.showMessage(Notifications.Type.SUCCESS, 
+                            quantity + " \"" + product.getName() + "\" added to cart");
                         refreshCartForm();
+                        
+                        existingCartQuantity += quantity;
+                        refreshProductView();
                     } else {
-                        Application.showMessage(Notifications.Type.ERROR, "Failed to update cart");
+                        Application.showMessage(Notifications.Type.ERROR, 
+                            "Failed to update \"" + product.getName() + "\" in cart");
                     }
                     productFound = true;
                     break;
@@ -300,15 +359,21 @@ public class ProductDetailComponent extends JPanel {
 
                 boolean success = cartDetailDAO.insert(cartItem);
                 if (success) {
-                    Application.showMessage(Notifications.Type.SUCCESS, quantity + " item(s) added to cart");
+                    Application.showMessage(Notifications.Type.SUCCESS, 
+                        quantity + " \"" + product.getName() + "\" added to cart");
                     refreshCartForm();
+                    
+                    existingCartQuantity += quantity;
+                    refreshProductView();
                 } else {
-                    Application.showMessage(Notifications.Type.ERROR, "Failed to add item to cart");
+                    Application.showMessage(Notifications.Type.ERROR, 
+                        "Failed to add \"" + product.getName() + "\" to cart");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Application.showMessage(Notifications.Type.ERROR, "Error adding to cart: " + e.getMessage());
+            Application.showMessage(Notifications.Type.ERROR, 
+                "Error adding \"" + product.getName() + "\" to cart: " + e.getMessage());
         }
     }
 
@@ -326,6 +391,16 @@ public class ProductDetailComponent extends JPanel {
             }
         }
     }
+    
+    private void refreshProductView() {
+        this.removeAll();
+        checkExistingCartQuantity();
+        init();
+        loadImage();
+        this.revalidate();
+        this.repaint();
+    }
+
     private int getCurrentCartID(){
         try{
             int userId = getCurrentUserID();

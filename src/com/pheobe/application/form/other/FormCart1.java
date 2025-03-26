@@ -32,6 +32,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import raven.toast.Notifications;
+import javax.swing.JSpinner;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -59,14 +61,20 @@ public class FormCart1 extends javax.swing.JPanel {
         jScrollPane1.putClientProperty(FlatClientProperties.STYLE, """
                 border: 0,0,0,0
                 """);
-        dtm = (DefaultTableModel) tbtCart.getModel();
-
-        if (tbtCart.getColumnCount() < 4) {
-            String[] columnNames = {"Product", "Quantity", "Price", "Action"};
-            dtm = new DefaultTableModel(columnNames, 0);
-            tbtCart.setModel(dtm);
-        }
-
+        
+        String[] columnNames = {"Product", "Quantity", "Price", "Action"};
+        dtm = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 1 || column == 3;
+            }
+        };
+        tbtCart.setModel(dtm);
+        
+        tbtCart.setDefaultEditor(Object.class, null);
+        
+        tbtCart.getColumnModel().getColumn(1).setCellEditor(new SpinnerEditor());
+        
         tbtCart.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
         tbtCart.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor());
 
@@ -452,6 +460,7 @@ public class FormCart1 extends javax.swing.JPanel {
         }
 
         lblMoney.setText("$" + String.format("%.2f", total));
+        lblMoney.repaint();
     }
 
     private int getCurrentCartID() {
@@ -498,5 +507,121 @@ public class FormCart1 extends javax.swing.JPanel {
         List<Cart_detail> cartItems = serviceCartDao.selectAll();
         loadTableCart(cartItems);
         updateTotalAmount();
+    }
+
+    class SpinnerEditor extends AbstractCellEditor implements TableCellEditor {
+        private JSpinner spinner;
+        private int productId;
+        private int initialValue;
+        private int maxStock;
+        
+        public SpinnerEditor() {
+            spinner = new JSpinner();
+            spinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 1, 1));
+            
+            JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor();
+            editor.getTextField().setEditable(true);
+            editor.getTextField().addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusLost(java.awt.event.FocusEvent evt) {
+                    validateQuantity();
+                }
+            });
+        }
+        
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, 
+                boolean isSelected, int row, int column) {
+            initialValue = (Integer) value;
+            productId = (int) dtm.getValueAt(row, 3);
+            
+            Product_DAO productDao = new Product_DAO();
+            Product product = productDao.getProductById(productId);
+            maxStock = 1;
+            
+            if (product != null) {
+                maxStock = product.getStock();
+                if (initialValue > maxStock) {
+                    maxStock = initialValue;
+                }
+            }
+            
+            spinner.setModel(new javax.swing.SpinnerNumberModel(
+                initialValue,
+                1,
+                Integer.MAX_VALUE,
+                1
+            ));
+            
+            return spinner;
+        }
+        
+        @Override
+        public Object getCellEditorValue() {
+            validateQuantity();
+            
+            int newValue = (Integer) spinner.getValue();
+            
+            if (newValue != initialValue) {
+                updateCartItemQuantity(productId, newValue);
+                SwingUtilities.invokeLater(() -> {
+                    updateTotalAmount();
+                });
+            }
+            
+            return newValue;
+        }
+        
+        private void validateQuantity() {
+            try {
+                JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spinner.getEditor();
+                String text = editor.getTextField().getText();
+                int value = Integer.parseInt(text);
+                
+                if (value > maxStock) {
+                    spinner.setValue(maxStock);
+                    Application.showMessage(Notifications.Type.WARNING, 
+                        "Quantity adjusted to maximum available stock: " + maxStock);
+                } else if (value < 1) {
+                    spinner.setValue(1);
+                    Application.showMessage(Notifications.Type.WARNING, 
+                        "Quantity must be at least 1");
+                }
+            } catch (NumberFormatException e) {
+                spinner.setValue(initialValue);
+                Application.showMessage(Notifications.Type.WARNING, 
+                    "Invalid quantity. Reset to " + initialValue);
+            }
+        }
+        
+        @Override
+        public boolean stopCellEditing() {
+            validateQuantity();
+            return super.stopCellEditing();
+        }
+    }
+
+    private void updateCartItemQuantity(int productId, int newQuantity) {
+        try {
+            int cartId = getCurrentCartID();
+            Cart_Detail_DAO cdDao = new Cart_Detail_DAO();
+            List<Cart_detail> allCartDetails = cdDao.selectAll();
+            
+            for (Cart_detail detail : allCartDetails) {
+                if (detail.getCartID() == cartId && detail.getProductId() == productId) {
+                    detail.setQuantity(newQuantity);
+                    boolean updated = cdDao.update(detail);
+                    
+                    if (updated) {
+                    } else {
+                        Application.showMessage(Notifications.Type.ERROR, "Failed to update quantity");
+                    }
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Application.showMessage(Notifications.Type.ERROR, "Failed to update quantity");
+        }
     }
 }

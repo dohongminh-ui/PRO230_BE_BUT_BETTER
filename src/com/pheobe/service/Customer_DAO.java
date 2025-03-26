@@ -20,7 +20,7 @@ public class Customer_DAO {
     private String queryToSelectAll = "SELECT * FROM Customer";
     private String queryToSelectByID = "SELECT * FROM Customer WHERE idCustomer = ?";
     private String queryToInsert = "INSERT INTO Customer (name, sex, createDate, email, phoneNumber, address, status, password, userName, logOut, accountFailCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private String queryToUpdate = "UPDATE Customer SET Name = ?, Email=?, phoneNumber = ?, Address = ?  WHERE idCustomer = ?";
+    private String queryToUpdate = "UPDATE Customer SET Name = ?, Email=?, phoneNumber = ?, Address = ?, img = ?  WHERE idCustomer = ?";
     private String queryToDelete = "DELETE FROM Customer WHERE idCustomer = ?";
     
     private Connection con = DBcontext.getConnection();
@@ -59,6 +59,7 @@ public class Customer_DAO {
         try {
             PreparedStatement pre = con.prepareStatement(queryToSelectByID);
             pre.setInt(1, id);
+            System.err.println("DATABASE QUERY: Retrieving customer with ID: " + id);
             ResultSet rs = pre.executeQuery();
             
             if (rs.next()) {
@@ -75,11 +76,24 @@ public class Customer_DAO {
                 customer.setUserName(rs.getString("userName"));
                 customer.setLogOut(rs.getObject("logOut", LocalDateTime.class));
                 customer.setAccountFailCount(rs.getInt("accountFailCount"));
+                
+                try {
+                    String imgValue = rs.getString("img");
+                    customer.setImg(imgValue);
+                    System.err.println("DATABASE QUERY: Image loaded from database for user " + id + ": " + imgValue);
+                } catch (SQLException ex) {
+                    System.err.println("DATABASE QUERY ERROR: Failed to retrieve 'img' field for user " + id + ": " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+                
                 rs.close();
                 pre.close();
                 return customer;
+            } else {
+                System.err.println("DATABASE QUERY: No customer found with ID: " + id);
             }
         } catch (SQLException e) {
+            System.err.println("DATABASE QUERY ERROR: Error retrieving customer with ID " + id + ": " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -116,7 +130,8 @@ public class Customer_DAO {
             pre.setString(2, customer.getEmail());
             pre.setString(3, customer.getPhoneNumber());
             pre.setString(4, customer.getAddress());
-            pre.setInt(5, customer.getIdCustomer());
+            pre.setString(5, customer.getImg());
+            pre.setInt(6, customer.getIdCustomer());
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;

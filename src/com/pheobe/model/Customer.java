@@ -24,6 +24,7 @@ public class Customer {
     private LocalDateTime logOut;
     private int accountFailCount;
     private boolean isAdmin;
+    private String img;
     
     
     // Default constructor
@@ -174,6 +175,14 @@ public class Customer {
 
     public void setAccountFailCount(int accountFailCount) {
         this.accountFailCount = accountFailCount;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
     }
 
 }

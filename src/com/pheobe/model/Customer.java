@@ -185,4 +185,9 @@ public class Customer {
         this.img = img;
     }
 
+    @Override
+    public String toString() {
+        return  address ;
+    }
+    
 }

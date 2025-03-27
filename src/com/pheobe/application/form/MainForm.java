@@ -21,6 +21,7 @@ import com.pheobe.application.form.other.FormCart1;
 import com.pheobe.application.form.other.FormCustomerInfromation;
 import com.pheobe.application.form.other.FormDashboard;
 import com.pheobe.application.form.other.FormHistory;
+import com.pheobe.application.form.other.ProductManagementForm;
 import com.pheobe.application.menu.Menu;
 import com.pheobe.application.menu.MenuAction;
 import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
@@ -132,7 +133,7 @@ public class MainForm extends JLayeredPane {
                 if (subIndex == 1) {
                     Application.showForm(new CustomerManagementForm1());
                 } else if (subIndex == 2) {
-                    //
+                    Application.showForm(new ProductManagementForm());
                 }
             } else {
                 action.cancel();

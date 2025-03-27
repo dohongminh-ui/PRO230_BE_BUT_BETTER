@@ -2,7 +2,6 @@ package com.pheobe.application.form.other;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.pheobe.application.Application;
-import com.pheobe.connection.DBcontext;
 import com.pheobe.model.Cart;
 import com.pheobe.model.Customer;
 import com.pheobe.service.Cart_DAO;
@@ -23,6 +22,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import raven.toast.Notifications;
 import com.pheobe.connection.DBcontext;
+import java.util.ArrayList;
 
 /**
  *
@@ -31,6 +31,7 @@ import com.pheobe.connection.DBcontext;
 public class CustomerManagementForm1 extends javax.swing.JPanel {
     private DefaultTableModel dtm = new DefaultTableModel();
     private Customer_DAO servieCustomerDao = new Customer_DAO();
+    private List<Customer> CustomerList = new ArrayList<>();
     public CustomerManagementForm1() {
         initComponents();
         tbtCusomerManage.putClientProperty(FlatClientProperties.STYLE, ""
@@ -50,8 +51,24 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
         tbtCusomerManage.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
         tbtCusomerManage.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor());
         loadTable(servieCustomerDao.queryToSelectAllbyAdmin());
-    }
-
+        
+        // Add action listener to search button
+        btnSearchCustomer.addActionListener(e -> searchCustomers());
+        
+        // Add action listener to status combo box
+        cbStatus.addActionListener(e -> searchCustomers());
+        
+        // Add key listener to search field for real-time searching (optional)
+        txtSearchCustomer.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    searchCustomers();
+                }
+            }
+        });
+    }   
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -63,8 +80,6 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
         tbtCusomerManage = new javax.swing.JTable();
         cbStatus = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        cbAddress = new javax.swing.JComboBox<>();
 
         btnSearchCustomer.setText("Search");
 
@@ -89,33 +104,25 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
 
         jLabel2.setText("Status");
 
-        jLabel3.setText("Address");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lb, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(76, 76, 76)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(cbAddress, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
+                                .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
                                 .addComponent(txtSearchCustomer, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnSearchCustomer)
-                                .addGap(19, 19, 19)))))
+                                .addGap(18, 18, 18)
+                                .addComponent(btnSearchCustomer)))
+                        .addGap(0, 323, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -123,17 +130,14 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lb, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2)
                 .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cbAddress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtSearchCustomer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSearchCustomer))
-                .addGap(29, 29, 29)
+                .addGap(35, 35, 35)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 366, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -141,10 +145,8 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSearchCustomer;
-    private javax.swing.JComboBox<String> cbAddress;
     private javax.swing.JComboBox<String> cbStatus;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lb;
     private javax.swing.JTable tbtCusomerManage;
@@ -250,5 +252,36 @@ public class CustomerManagementForm1 extends javax.swing.JPanel {
             e.printStackTrace();
             Application.showMessage(Notifications.Type.ERROR, "Error removing user: " + e.getMessage());
         }
+    }
+
+    /**
+     * Search customers based on name and status filter
+     */
+    private void searchCustomers() {
+        String searchText = txtSearchCustomer.getText().trim();
+        String status = cbStatus.getSelectedItem().toString();
+        
+        List<Customer> filteredCustomers = new ArrayList<>();
+        List<Customer> allCustomers = servieCustomerDao.queryToSelectAllbyAdmin();
+        
+        for (Customer customer : allCustomers) {
+            // Skip admin users as in loadTable method
+            if (customer.isAdmin()) {
+                continue;
+            }
+            
+            boolean matchesSearch = searchText.isEmpty() || 
+                                    customer.getName().toLowerCase().contains(searchText.toLowerCase());
+            boolean matchesStatus = status.equals("Active") ? 
+                                   "Active".equals(customer.getStatus()) : 
+                                   "Offline".equals(customer.getStatus());
+            
+            if (matchesSearch && matchesStatus) {
+                filteredCustomers.add(customer);
+            }
+        }
+        
+        // Update table with filtered results
+        loadTable(filteredCustomers);
     }
 }

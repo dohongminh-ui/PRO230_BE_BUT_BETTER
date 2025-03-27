@@ -19,10 +19,10 @@ import java.util.List;
 public class Evaluate_DAO {
     private static String getAllEvaluates = "SELECT * FROM evaluate";
     private static String getEvaluateById = "SELECT * FROM evaluate WHERE id = ?";
-    private static String getEvaluatesByProductId = "SELECT * FROM evaluate WHERE product_id = ?";
-    private static String getEvaluatesByCustomerId = "SELECT * FROM evaluate WHERE customer_id = ?";
-    private static String insertEvaluate = "INSERT INTO evaluate (product_id, customer_id, comment, rating, date) VALUES (?, ?, ?, ?, ?)";
-    private static String updateEvaluate = "UPDATE evaluate SET product_id = ?, customer_id = ?, comment = ?, rating = ?, update_date = ? WHERE id = ?";
+    private static String getEvaluatesByProductId = "SELECT * FROM evaluate WHERE ProductId = ?";
+    private static String getEvaluatesByCustomerId = "SELECT * FROM evaluate WHERE CustomerId = ?";
+    private static String insertEvaluate = "INSERT INTO evaluate (ProductId, CustomerId, comment, rating, date) VALUES (?, ?, ?, ?, ?)";
+    private static String updateEvaluate = "UPDATE evaluate SET ProductId = ?, CustomerId = ?, comment = ?, rating = ?, UpdateDate = ? WHERE id = ?";
     private static String deleteEvaluate = "DELETE FROM evaluate WHERE id = ?";
     
     Connection con = DBcontext.getConnection();
@@ -36,12 +36,12 @@ public class Evaluate_DAO {
             while (rs.next()) {
                 Evaluate evaluate = new Evaluate();
                 evaluate.setId(rs.getInt("id"));
-                evaluate.setProductId(rs.getInt("product_id"));
-                evaluate.setCustomerId(rs.getInt("customer_id"));
+                evaluate.setProductId(rs.getInt("ProductId"));
+                evaluate.setCustomerId(rs.getInt("CustomerId"));
                 evaluate.setComment(rs.getString("comment"));
                 evaluate.setRating(rs.getObject("rating", Integer.class));
                 evaluate.setDate(rs.getObject("date", LocalDateTime.class));
-                evaluate.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
+                evaluate.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
                 evaluates.add(evaluate);
             }
         } catch (SQLException e) {
@@ -59,12 +59,12 @@ public class Evaluate_DAO {
             if (rs.next()) {
                 Evaluate evaluate = new Evaluate();
                 evaluate.setId(rs.getInt("id"));
-                evaluate.setProductId(rs.getInt("product_id"));
-                evaluate.setCustomerId(rs.getInt("customer_id"));
+                evaluate.setProductId(rs.getInt("ProductId"));
+                evaluate.setCustomerId(rs.getInt("CustomerId"));
                 evaluate.setComment(rs.getString("comment"));
                 evaluate.setRating(rs.getObject("rating", Integer.class));
                 evaluate.setDate(rs.getObject("date", LocalDateTime.class));
-                evaluate.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
+                evaluate.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
                 return evaluate;
             }
         } catch (SQLException e) {
@@ -83,12 +83,12 @@ public class Evaluate_DAO {
             while (rs.next()) {
                 Evaluate evaluate = new Evaluate();
                 evaluate.setId(rs.getInt("id"));
-                evaluate.setProductId(rs.getInt("product_id"));
-                evaluate.setCustomerId(rs.getInt("customer_id"));
+                evaluate.setProductId(rs.getInt("ProductId"));
+                evaluate.setCustomerId(rs.getInt("CustomerId"));
                 evaluate.setComment(rs.getString("comment"));
                 evaluate.setRating(rs.getObject("rating", Integer.class));
                 evaluate.setDate(rs.getObject("date", LocalDateTime.class));
-                evaluate.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
+                evaluate.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
                 evaluates.add(evaluate);
             }
         } catch (SQLException e) {
@@ -107,12 +107,12 @@ public class Evaluate_DAO {
             while (rs.next()) {
                 Evaluate evaluate = new Evaluate();
                 evaluate.setId(rs.getInt("id"));
-                evaluate.setProductId(rs.getInt("product_id"));
-                evaluate.setCustomerId(rs.getInt("customer_id"));
+                evaluate.setProductId(rs.getInt("ProductId"));
+                evaluate.setCustomerId(rs.getInt("CustomerId"));
                 evaluate.setComment(rs.getString("comment"));
                 evaluate.setRating(rs.getObject("rating", Integer.class));
                 evaluate.setDate(rs.getObject("date", LocalDateTime.class));
-                evaluate.setUpdateDate(rs.getObject("update_date", LocalDateTime.class));
+                evaluate.setUpdateDate(rs.getObject("UpdateDate", LocalDateTime.class));
                 evaluates.add(evaluate);
             }
         } catch (SQLException e) {

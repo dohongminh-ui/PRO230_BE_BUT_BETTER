@@ -12,13 +12,24 @@ import com.pheobe.service.Cart_Detail_DAO;
 import com.pheobe.service.Product_Color_DAO;
 import com.pheobe.model.Product_Color;
 import com.pheobe.application.manager.BreadcrumbManager;
+import com.pheobe.model.Evaluate;
+import com.pheobe.service.Evaluate_DAO;
 import raven.toast.Notifications;
+import com.pheobe.model.Customer;
+import com.pheobe.service.Customer_DAO;
 
 import javax.swing.*;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import static java.time.LocalDateTime.now;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -30,8 +41,16 @@ public class ProductDetailComponent extends javax.swing.JPanel {
     private Brand brand;
     private Category category;
     private int existingCartQuantity = 0;
-    private JPanel headerPanel;
     private JButton backButton;
+    private JPanel commentsPanel;
+    private JTextArea commentTextArea;
+    private JComboBox<Integer> ratingComboBox;
+    private int currentPage = 0;
+    private int commentsPerPage = 5;
+    private List<Evaluate> allReviews = new ArrayList<>();
+    private JLabel pageInfoLabel;
+    private JPanel mainContentPanel;
+    private JScrollPane mainScrollPane;
 
     public ProductDetailComponent(String text) {
         initComponents();
@@ -56,6 +75,22 @@ public class ProductDetailComponent extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        mainContentPanel = new JPanel();
+        mainContentPanel.setLayout(new BoxLayout(mainContentPanel, BoxLayout.Y_AXIS));
+
+        mainScrollPane = new JScrollPane(mainContentPanel);
+        mainScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        mainScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        mainScrollPane.setBorder(null);
+
+        mainScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        mainScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+
+        setLayout(new BorderLayout());
+        add(mainScrollPane, BorderLayout.CENTER);
+
+        JPanel productInfoPanel = new JPanel();
+        
         imagePanel = new javax.swing.JPanel();
         lblName = new javax.swing.JLabel();
         lblPrice = new javax.swing.JLabel();
@@ -66,6 +101,7 @@ public class ProductDetailComponent extends javax.swing.JPanel {
         quantitySpinner = new javax.swing.JSpinner();
         addToCart = new javax.swing.JButton();
         topPanel = new javax.swing.JPanel();
+        commentsPanel = new javax.swing.JPanel();
 
         imagePanel.setPreferredSize(new java.awt.Dimension(300, 300));
 
@@ -108,39 +144,117 @@ public class ProductDetailComponent extends javax.swing.JPanel {
         topPanel.setPreferredSize(new java.awt.Dimension(0, 101));
         topPanel.setLayout(new java.awt.BorderLayout());
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(50, 50, 50)
-                .addComponent(imagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(50, 50, 50)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblName)
-                    .addComponent(lblPrice)
-                    .addComponent(lblCategory)
-                    .addComponent(lblStock)
-                    .addComponent(lblDescription)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(quantityLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(quantitySpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(addToCart))
-                .addContainerGap(410, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        JLabel commentsTitle = new JLabel("Reviews");
+        commentsTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        commentsTitle.setHorizontalAlignment(JLabel.CENTER);
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.add(commentsTitle, BorderLayout.CENTER);
+        commentsPanel.setLayout(new BorderLayout());
+        commentsPanel.add(titlePanel, BorderLayout.NORTH);
+
+        JPanel commentsContentPanel = new JPanel();
+        commentsContentPanel.setLayout(new BorderLayout());
+
+        JPanel reviewsContainer = new JPanel();
+        reviewsContainer.setLayout(new BoxLayout(reviewsContainer, BoxLayout.Y_AXIS));
+        reviewsContainer.setBorder(null);
+        reviewsContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+        JPanel addReviewPanel = new JPanel(new BorderLayout());
+        JPanel ratingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        
+        JLabel ratingLabel = new JLabel("Rating:");
+        ratingComboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5});
+        ratingPanel.add(ratingLabel);
+        ratingPanel.add(ratingComboBox);
+        
+        commentTextArea = new JTextArea();
+        commentTextArea.setLineWrap(true);
+        commentTextArea.setWrapStyleWord(true);
+        commentTextArea.setRows(3);
+        JScrollPane commentScrollPane = new JScrollPane(commentTextArea);
+        
+        JButton submitButton = new JButton("Submit Review");
+        submitButton.addActionListener(e -> submitReview());
+        
+        addReviewPanel.add(ratingPanel, BorderLayout.NORTH);
+        addReviewPanel.add(commentScrollPane, BorderLayout.CENTER);
+        addReviewPanel.add(submitButton, BorderLayout.SOUTH);
+
+        JPanel paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton prevButton = new JButton("◀ Previous");
+        pageInfoLabel = new JLabel("Page 1");
+        JButton nextButton = new JButton("Next ▶");
+        
+        prevButton.addActionListener(e -> {
+            if (currentPage > 0) {
+                currentPage--;
+                loadCommentsPage();
+            }
+        });
+
+        nextButton.addActionListener(e -> {
+            int totalPages = (int) Math.ceil((double) allReviews.size() / commentsPerPage);
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadCommentsPage();
+            }
+        });
+
+        paginationPanel.add(prevButton);
+        paginationPanel.add(pageInfoLabel);
+        paginationPanel.add(nextButton);
+
+        addReviewPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        commentsContentPanel.add(addReviewPanel, BorderLayout.NORTH);
+        
+        JPanel reviewsWithPaginationPanel = new JPanel(new BorderLayout());
+        reviewsWithPaginationPanel.add(reviewsContainer, BorderLayout.CENTER);
+        reviewsWithPaginationPanel.add(paginationPanel, BorderLayout.SOUTH);
+        reviewsWithPaginationPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        commentsContentPanel.add(reviewsWithPaginationPanel, BorderLayout.CENTER);
+        
+        commentsPanel.add(commentsContentPanel, BorderLayout.CENTER);
+        
+        commentsPanel.setBorder(null);
+        
+        commentsContentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        javax.swing.GroupLayout productInfoLayout = new javax.swing.GroupLayout(productInfoPanel);
+        productInfoPanel.setLayout(productInfoLayout);
+        productInfoLayout.setHorizontalGroup(
+            productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(productInfoLayout.createSequentialGroup()
+                .addGroup(productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, productInfoLayout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(topPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(productInfoLayout.createSequentialGroup()
+                        .addGap(50, 50, 50)
+                        .addComponent(imagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(50, 50, 50)
+                        .addGroup(productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblName)
+                            .addComponent(lblPrice)
+                            .addComponent(lblCategory)
+                            .addComponent(lblStock)
+                            .addComponent(lblDescription)
+                            .addGroup(productInfoLayout.createSequentialGroup()
+                                .addComponent(quantityLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(quantitySpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(addToCart))
+                        .addGap(50, 50, 398)))
                 .addContainerGap())
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+        productInfoLayout.setVerticalGroup(
+            productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(productInfoLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(topPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(productInfoLayout.createSequentialGroup()
                         .addComponent(lblName)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lblPrice)
@@ -151,14 +265,26 @@ public class ProductDetailComponent extends javax.swing.JPanel {
                         .addGap(18, 18, 18)
                         .addComponent(lblDescription)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addGroup(productInfoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(quantityLabel)
                             .addComponent(quantitySpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(addToCart))
                     .addComponent(imagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(94, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
+        
+        // Add components to main content panel
+        mainContentPanel.add(productInfoPanel);
+        
+        // Add a rigid area for spacing
+        mainContentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        // Add comments panel
+        mainContentPanel.add(commentsPanel);
+        
+        // Add padding at the bottom for better scrolling
+        mainContentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
     }// </editor-fold>//GEN-END:initComponents
 
     private void addToCartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToCartActionPerformed
@@ -302,6 +428,8 @@ public class ProductDetailComponent extends javax.swing.JPanel {
                 }
             }
         }
+        
+        loadComments();
     }
     
     private void loadImage() {
@@ -462,7 +590,6 @@ public class ProductDetailComponent extends javax.swing.JPanel {
     }
 
     private void initBreadcrumb() {
-        // Assuming topPanel is the JPanel you added in the designer
         if (topPanel != null) {
             System.out.println("sigma");
             backButton = new JButton("Back");
@@ -475,10 +602,212 @@ public class ProductDetailComponent extends javax.swing.JPanel {
             backButtonPanel.add(backButton);
             topPanel.add(backButtonPanel, BorderLayout.NORTH);
             
-            // Add breadcrumb
             JPanel breadcrumbPanel = new JPanel(new BorderLayout());
             breadcrumbPanel.add(BreadcrumbManager.getInstance().getBreadcrumb(), BorderLayout.CENTER);
             topPanel.add(breadcrumbPanel, BorderLayout.CENTER);
         }
+    }
+
+    private void loadComments() {
+        if (product == null) return;
+
+        try {
+            Evaluate_DAO evaluateDAO = new Evaluate_DAO();
+            allReviews = evaluateDAO.getEvaluatesByProductId(product.getIdProduct());
+
+            currentPage = 0;
+            loadCommentsPage();
+
+            updatePaginationVisibility();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updatePaginationVisibility() {
+        JPanel commentsContentPanel = (JPanel) commentsPanel.getComponent(1);
+        JPanel reviewsWithPaginationPanel = (JPanel) commentsContentPanel.getComponent(1);
+        JPanel paginationPanel = (JPanel) reviewsWithPaginationPanel.getComponent(1);
+
+        boolean needsPagination = allReviews.size() > commentsPerPage;
+        paginationPanel.setVisible(needsPagination);
+    }
+
+    private void loadCommentsPage() {
+        JPanel commentsContentPanel = (JPanel) commentsPanel.getComponent(1);
+        JPanel reviewsWithPaginationPanel = (JPanel) commentsContentPanel.getComponent(1);
+        JPanel reviewsContainer = (JPanel) reviewsWithPaginationPanel.getComponent(0);
+        reviewsContainer.removeAll();
+
+        if (allReviews.isEmpty()) {
+            JLabel noReviewsLabel = new JLabel("No reviews yet. Be the first to review!");
+            noReviewsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            reviewsContainer.add(noReviewsLabel);
+
+            int totalPages = 1;
+            pageInfoLabel.setText("Page 1 of 1");
+        } else {
+            int totalPages = (int) Math.ceil((double) allReviews.size() / commentsPerPage);
+            pageInfoLabel.setText("Page " + (currentPage + 1) + " of " + totalPages);
+
+            List<Evaluate> pageReviews;
+            if (allReviews.size() <= commentsPerPage) {
+                pageReviews = allReviews;
+            } else {
+                int startIndex = currentPage * commentsPerPage;
+                int endIndex = Math.min(startIndex + commentsPerPage, allReviews.size());
+                pageReviews = allReviews.subList(startIndex, endIndex);
+            }
+
+            for (Evaluate review : pageReviews) {
+                JPanel reviewPanel = createReviewPanel(review);
+                reviewPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                reviewsContainer.add(reviewPanel);
+                reviewsContainer.add(Box.createVerticalStrut(10));
+            }
+        }
+
+        reviewsContainer.revalidate();
+        reviewsContainer.repaint();
+    }
+
+    private JPanel createReviewPanel(Evaluate review) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createEmptyBorder(5, 5, 5, 5),
+            BorderFactory.createLineBorder(Color.LIGHT_GRAY)
+        ));
+        
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        
+        // Customer info and date first
+        JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Get username instead of showing customer ID
+        String username = getUsernameById(review.getCustomerId());
+        JLabel customerLabel = new JLabel(username);
+        JLabel dateLabel = new JLabel(" | " + review.getDate().toLocalDate().toString());
+        infoPanel.add(customerLabel);
+        infoPanel.add(dateLabel);
+        infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Rating stars - now below username
+        JPanel ratingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel ratingLabel = new JLabel("Rating: ");
+        
+        JLabel starsLabel = new JLabel(getStarRating(review.getRating()));
+        Font starFont = new Font("Arial", Font.PLAIN, 14);
+        starsLabel.setFont(starFont);
+        starsLabel.setForeground(new Color(255, 204, 0));
+        
+        ratingPanel.add(ratingLabel);
+        ratingPanel.add(starsLabel);
+        ratingPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Add in the new order: username first, then rating
+        topPanel.add(infoPanel);
+        topPanel.add(ratingPanel);
+        
+        JTextArea commentArea = new JTextArea();
+        commentArea.setText(review.getComment());
+        commentArea.setLineWrap(true);
+        commentArea.setWrapStyleWord(true);
+        commentArea.setEditable(false);
+        commentArea.setBackground(panel.getBackground());
+        
+        Font largerFont = new Font("Segoe UI", Font.PLAIN, 14);
+        commentArea.setFont(largerFont);
+        
+        JPanel commentPanel = new JPanel(new BorderLayout());
+        commentPanel.setBackground(panel.getBackground());
+        commentPanel.add(commentArea, BorderLayout.CENTER);
+        commentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(commentPanel, BorderLayout.CENTER);
+        
+        return panel;
+    }
+
+    private String getStarRating(Integer rating) {
+        if (rating == null) return "N/A";
+        
+        StringBuilder stars = new StringBuilder();
+        for (int i = 0; i < rating; i++) {
+            stars.append("★");
+        }
+        for (int i = rating; i < 5; i++) {
+            stars.append("☆");
+        }
+        return stars.toString();
+    }
+
+    private void submitReview() {
+        if (product == null) return;
+
+        try {
+            if (Application.getCurrentUser() == null) {
+                Application.showMessage(Notifications.Type.WARNING, "Please login to add a review");
+                return;
+            }
+
+            String comment = commentTextArea.getText().trim();
+            Integer rating = (Integer) ratingComboBox.getSelectedItem();
+
+            if (comment.isEmpty()) {
+                Application.showMessage(Notifications.Type.WARNING, "Please enter a comment");
+                return;
+            }
+
+            Evaluate review = new Evaluate();
+            review.setProductId(product.getIdProduct());
+            review.setCustomerId(getCurrentUserID());
+            review.setComment(comment);
+            review.setRating(rating);
+            review.setDate(now());
+            
+            Evaluate_DAO evaluateDAO = new Evaluate_DAO();
+            boolean success = evaluateDAO.insertEvaluate(review);
+
+            if (success) {
+                Application.showMessage(Notifications.Type.SUCCESS, "Review submitted successfully");
+                commentTextArea.setText("");
+                loadComments();
+
+                if (allReviews.size() > commentsPerPage) {
+                    currentPage = (int) Math.ceil((double) allReviews.size() / commentsPerPage) - 1;
+                    if (currentPage < 0) currentPage = 0;
+                    loadCommentsPage();
+                }
+
+                updatePaginationVisibility();
+            } else {
+                Application.showMessage(Notifications.Type.ERROR, "Failed to submit review");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Application.showMessage(Notifications.Type.ERROR, "Error submitting review: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        loadComments();
+    }
+
+    // Helper method to get username by customer ID
+    private String getUsernameById(int customerId) {
+        try {
+            Customer_DAO customerDAO = new Customer_DAO();
+            Customer customer = customerDAO.selectById(customerId);
+            if (customer != null && customer.getUserName() != null) {
+                return customer.getUserName();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "User #" + customerId; // Fallback if we can't get the username
     }
 }

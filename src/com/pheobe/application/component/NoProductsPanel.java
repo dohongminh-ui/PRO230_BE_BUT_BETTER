@@ -2,7 +2,6 @@ package com.pheobe.application.component;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 
@@ -40,7 +39,7 @@ public class NoProductsPanel extends JPanel {
             g2d.drawImage(backgroundImage, x, y, imgWidth, imgHeight, this);
         }
         
-        g2d.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        g2d.setFont(new Font("Roboto", Font.PLAIN, 16));
         g2d.setColor(new Color(0, 0, 0));
         
         FontMetrics fm = g2d.getFontMetrics();

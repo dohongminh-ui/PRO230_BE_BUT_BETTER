@@ -103,4 +103,10 @@ public class Brand {
         this.updateDate = updateDate;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+    
+    
 }

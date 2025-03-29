@@ -20,6 +20,7 @@ public class Product {
     private int stock;
     private String description;
     private String status;
+    private String img;
     private LocalDateTime createDate;
     private LocalDateTime updateDate;
 
@@ -33,7 +34,7 @@ public class Product {
     // Parameterized constructor
     public Product(int idProduct, String name, int categoryId, int brandId, BigDecimal price, 
                   int stock, String description, String status, LocalDateTime createDate, 
-                  LocalDateTime updateDate) {
+                  LocalDateTime updateDate, String img) {
         this.idProduct = idProduct;
         this.name = name;
         this.categoryId = categoryId;
@@ -44,6 +45,7 @@ public class Product {
         this.status = status;
         this.createDate = createDate;
         this.updateDate = updateDate;
+        this.img = img;
     }
 
     // Minimal constructor with required fields
@@ -57,6 +59,16 @@ public class Product {
         this.createDate = LocalDateTime.now();
     }
 
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
+    }
+    
+    
+    
     // Getters and Setters
     public int getIdProduct() {
         return idProduct;

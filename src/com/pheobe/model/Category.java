@@ -101,4 +101,9 @@ public class Category {
         this.updateDate = updateDate;
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+    
 }

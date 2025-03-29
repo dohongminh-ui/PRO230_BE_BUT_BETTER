@@ -17,8 +17,9 @@ import java.util.List;
 public class Product_DAO {
     private String queryString = "select * from product";
     private String insertStatement = "INSERT INTO Product (Name, CategoryId, BrandId, Price, Stock, Description, Status, CreateDate, UpdateDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private String updateStatement = "UPDATE Product SET Name = ?, CategoryId = ?, BrandId = ?, Price = ?, Stock = ?, Description = ?, Status = ?, UpdateDate = ? WHERE IdProduct = ?";
-    private String deleteStatement = "UPDATE Product SET Status = ? WHERE IdProduct = ?";
+    private String InsertProduct = "INSERT INTO Product (Name, CategoryId, BrandId, Price, Stock, Description, Image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    private String updateStatement = "UPDATE Product SET Name = ?, CategoryId = ?, BrandId = ?, Price = ?, Stock = ?, Description = ?,  Image = ? WHERE IdProduct = ?";
+    private String deleteStatement = "DELETE Product  WHERE IdProduct = ?";
     
     Connection cn = DBcontext.getConnection();
     
@@ -38,7 +39,7 @@ public class Product_DAO {
                 product.setStock(rs.getInt("Stock"));
                 product.setDescription(rs.getString("Description"));
                 product.setStatus(rs.getString("Status"));
-                
+                product.setImg(rs.getString("Image"));
                 // Convert SQL Timestamp to LocalDateTime
                 Timestamp createTimestamp = rs.getTimestamp("CreateDate");
                 product.setCreateDate(createTimestamp != null ? createTimestamp.toLocalDateTime() : null);
@@ -81,6 +82,28 @@ public class Product_DAO {
         return false;
     }
     
+    public boolean addProductBB(Product product) {
+        try {
+            PreparedStatement stm = cn.prepareStatement(InsertProduct);
+            stm.setString(1, product.getName());
+            stm.setInt(2, product.getCategoryId());
+            stm.setInt(3, product.getBrandId());
+            stm.setBigDecimal(4, product.getPrice());
+            stm.setInt(5, product.getStock());
+            stm.setString(6, product.getDescription());
+            stm.setString(7, product.getImg());
+
+            
+            int row = stm.executeUpdate();
+            stm.close();
+            return row > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
     public boolean updateProduct(int id, Product product) {
         try {
             PreparedStatement stm = cn.prepareStatement(updateStatement);
@@ -90,9 +113,8 @@ public class Product_DAO {
             stm.setBigDecimal(4, product.getPrice());
             stm.setInt(5, product.getStock());
             stm.setString(6, product.getDescription());
-            stm.setString(7, product.getStatus());
-            stm.setTimestamp(8, Timestamp.valueOf(LocalDateTime.now())); // Set update date to current time
-            stm.setInt(9, id);
+            stm.setString(7, product.getImg());
+            stm.setInt(8, id);
             
             int row = stm.executeUpdate();
             stm.close();
@@ -107,8 +129,7 @@ public class Product_DAO {
     public boolean deleteProduct(int id) {
         try {
             PreparedStatement stm = cn.prepareStatement(deleteStatement);
-            stm.setString(1, "Inactive");
-            stm.setInt(2, id);
+            stm.setInt(1, id);
             
             int row = stm.executeUpdate();
             stm.close();

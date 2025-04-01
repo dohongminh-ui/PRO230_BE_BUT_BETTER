@@ -21,8 +21,8 @@ import com.pheobe.model.Brand;
 public class Brand_DAO {
     private String queryToSelectAll = "SELECT * FROM Brand";
     private String queryToSelectByID = "SELECT * FROM Brand WHERE brandId = ?";
-    private String queryToInsert = "INSERT INTO Brand (name, searchCount, description, status, createDate, updateDate) VALUES (?, ?, ?, ?, ?, ?)";
-    private String queryToUpdate = "UPDATE Brand SET name = ?, searchCount = ?, description = ?, status = ?, updateDate = ? WHERE brandId = ?";
+    private String queryToInsert = "INSERT INTO Brand (name) VALUES (?)";
+    private String queryToUpdate = "UPDATE Brand SET Name = ? WHERE brandId = ?";
     private String queryToDelete = "DELETE FROM Brand WHERE brandId = ?";
     
     private Connection con = DBcontext.getConnection();
@@ -81,12 +81,6 @@ public class Brand_DAO {
         try {
             PreparedStatement pre = con.prepareStatement(queryToInsert);
             pre.setString(1, brand.getName());
-            pre.setInt(2, brand.getSearchCount());
-            pre.setString(3, brand.getDescription());
-            pre.setString(4, brand.getStatus());
-            pre.setObject(5, brand.getCreateDate());
-            pre.setObject(6, brand.getUpdateDate());
-            
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;
@@ -96,15 +90,11 @@ public class Brand_DAO {
         return false;
     }
     
-    public boolean update(Brand brand) {
+    public boolean update(int brandId,Brand brand) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToUpdate);
             pre.setString(1, brand.getName());
-            pre.setInt(2, brand.getSearchCount());
-            pre.setString(3, brand.getDescription());
-            pre.setString(4, brand.getStatus());
-            pre.setObject(5, brand.getUpdateDate());
-            pre.setInt(6, brand.getBrandId());
+            pre.setInt(2, brand.getBrandId());
             
             int row = pre.executeUpdate();
             pre.close();
@@ -119,7 +109,6 @@ public class Brand_DAO {
         try {
             PreparedStatement pre = con.prepareStatement(queryToDelete);
             pre.setInt(1, id);
-            
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;

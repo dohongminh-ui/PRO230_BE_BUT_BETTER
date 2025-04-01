@@ -16,6 +16,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import com.pheobe.application.Application;
+import com.pheobe.application.form.other.CategoryAndBrandManagement;
 import com.pheobe.application.form.other.CustomerManagementForm1;
 import com.pheobe.application.form.other.FormCart1;
 import com.pheobe.application.form.other.FormCustomerInfromation;
@@ -134,6 +135,8 @@ public class MainForm extends JLayeredPane {
                     Application.showForm(new CustomerManagementForm1());
                 } else if (subIndex == 2) {
                     Application.showForm(new ProductManagementForm());
+                }else if (subIndex == 3) {
+                    Application.showForm(new CategoryAndBrandManagement("Category Management"));
                 }
             } else {
                 action.cancel();

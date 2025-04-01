@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import raven.toast.Notifications;
@@ -76,6 +77,15 @@ public class ProductManagementForm extends javax.swing.JPanel {
         tbtProduct.getColumnModel().getColumn(8).setCellEditor(new ButtonEditor());
         tbtProduct.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
         tbtProduct.getColumnModel().getColumn(7).setCellEditor(new ButtonEditor());
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+
+        for (int i = 0; i < tbtProduct.getColumnCount(); i++) {
+            if (i != 7 && i != 8) { 
+                tbtProduct.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+            }
+        }
     }
 
     private void LoadBrandCB() {

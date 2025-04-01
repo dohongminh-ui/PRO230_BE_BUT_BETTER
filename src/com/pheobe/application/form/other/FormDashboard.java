@@ -80,7 +80,7 @@ public class FormDashboard extends javax.swing.JPanel {
             if (brand != null) {
                 brand.setSearchCount(brand.getSearchCount() + 1);
                 brand.setUpdateDate(java.time.LocalDateTime.now());
-                brand_DAO.update(brand);
+                brand_DAO.update(brand.getBrandId(), brand);
                 
                 String currentTitle = lb.getText();
                 if (currentTitle.equals("Home")) {

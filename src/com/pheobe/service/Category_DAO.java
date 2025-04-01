@@ -20,7 +20,8 @@ public class Category_DAO {
     private String queryToSelectAll = "SELECT * FROM Category";
     private String queryToSelectByID = "SELECT * FROM Category WHERE categoryId = ?";
     private String queryToInsert = "INSERT INTO Category (name, description, status, parentCategoryId, createDate, updateDate) VALUES (?, ?, ?, ?, ?, ?)";
-    private String queryToUpdate = "UPDATE Category SET name = ?, description = ?, status = ?, parentCategoryId = ?, updateDate = ? WHERE categoryId = ?";
+    private String queryToInsertCategory = "INSERT INTO Category (name) VALUES (?)";
+    private String queryToUpdate = "UPDATE Category SET Name = ? WHERE categoryId = ?";
     private String queryToDelete = "DELETE FROM Category WHERE categoryId = ?";
     
     private Connection con = DBcontext.getConnection();
@@ -93,17 +94,24 @@ public class Category_DAO {
         }
         return false;
     }
+    public boolean insertCategory(Category category) {
+        try {
+            PreparedStatement pre = con.prepareStatement(queryToInsertCategory);
+            pre.setString(1, category.getName());
+            int row = pre.executeUpdate();
+            pre.close();
+            return row > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     
-    public boolean update(Category category) {
+    public boolean update(int CategoryID,Category category) {
         try {
             PreparedStatement pre = con.prepareStatement(queryToUpdate);
             pre.setString(1, category.getName());
-            pre.setString(2, category.getDescription());
-            pre.setString(3, category.getStatus());
-            pre.setObject(4, category.getParentCategoryId());
-            pre.setObject(5, category.getUpdateDate());
-            pre.setInt(6, category.getCategoryId());
-            
+            pre.setInt(2, category.getCategoryId());
             int row = pre.executeUpdate();
             pre.close();
             return row > 0;

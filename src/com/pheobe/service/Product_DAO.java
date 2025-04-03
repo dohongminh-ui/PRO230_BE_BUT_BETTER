@@ -3,8 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.pheobe.service;
-import com.pheobe.model.Product;
 import com.pheobe.connection.DBcontext;
+import com.pheobe.model.Product;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -197,6 +197,7 @@ public class Product_DAO {
                 product.setStock(rs.getInt("Stock"));
                 product.setDescription(rs.getString("Description"));
                 product.setStatus(rs.getString("Status"));
+                product.setImg(rs.getString("Image"));
                 
                 // Convert SQL Timestamp to LocalDateTime
                 Timestamp createTimestamp = rs.getTimestamp("CreateDate");
@@ -235,6 +236,7 @@ public class Product_DAO {
                 product.setStock(rs.getInt("Stock"));
                 product.setDescription(rs.getString("Description"));
                 product.setStatus(rs.getString("Status"));
+                product.setImg(rs.getString("Image"));
                 
                 // Convert SQL Timestamp to LocalDateTime
                 Timestamp createTimestamp = rs.getTimestamp("CreateDate");

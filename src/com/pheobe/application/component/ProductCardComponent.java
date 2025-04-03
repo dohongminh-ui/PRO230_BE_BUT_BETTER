@@ -4,10 +4,6 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.pheobe.model.Product;
 import com.pheobe.model.Brand;
 import com.pheobe.model.Category;
-import com.pheobe.model.Product_Color;
-import com.pheobe.service.Brand_DAO;
-import com.pheobe.service.Category_DAO;
-import com.pheobe.service.Product_Color_DAO;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -20,10 +16,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.Composite;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.util.List;
+import java.io.File;
 
 public class ProductCardComponent extends JPanel {
     private final Product product;
@@ -124,22 +119,29 @@ public class ProductCardComponent extends JPanel {
         SwingWorker<ImageIcon, Void> worker = new SwingWorker<>() {
             @Override
             protected ImageIcon doInBackground() {
-                Product_Color_DAO productColorDAO = new Product_Color_DAO();
-                List<Product_Color> productColors = productColorDAO.getProductColorsByProductId(product.getIdProduct());
-
-                if (!productColors.isEmpty()) {
-                    byte[] imageData = productColors.get(0).getProductImage();
-                    if (imageData != null) {
-                        ImageIcon icon = new ImageIcon(imageData);
-                        Image fatImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
-                        return createRoundedImage(new ImageIcon(fatImage), 15);
+                String imagePath = product.getImg();
+                System.out.println("Loading image for product: " + product.getName());
+                System.out.println("Image path: " + imagePath);
+                
+                if (imagePath != null && !imagePath.isEmpty() && !imagePath.equals("Click to choose image")) {
+                    try {
+                        File imageFile = new File(imagePath);
+                        System.out.println("File exists: " + imageFile.exists());
+                        System.out.println("Absolute path: " + imageFile.getAbsolutePath());
+                        if (imageFile.exists()) {
+                            ImageIcon icon = new ImageIcon(imagePath);
+                            Image scaledImage = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                            return createRoundedImage(new ImageIcon(scaledImage), 15);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
-
+                
                 ImageIcon defaultIcon = new ImageIcon(getClass().getResource("/com/pheobe/icon/png/logo.png"));
                 return createRoundedImage(defaultIcon, 15);
             }
-
+            
             @Override
             protected void done() {
                 try {
@@ -150,7 +152,7 @@ public class ProductCardComponent extends JPanel {
                 }
             }
         };
-
+        
         worker.execute();
     }
 

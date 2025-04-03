@@ -273,7 +273,6 @@ public class FormCart1 extends javax.swing.JPanel {
                         String priceStr = priceObj.toString().replace("$", "").trim();
                         cd.setPrice(new BigDecimal(priceStr));
                     }
-
                     cartDetails.add(cd);
                 }
             }
